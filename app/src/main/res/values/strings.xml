@@ -53,7 +53,7 @@
     <string name="recent_sales">Recent Sales</string>
     <string name="recent_purchases">Recent Purchases</string>
     <string name="recent_empty">Nothing recorded yet.</string>
-    <string name="dashboard_data_note">Figures are calculated from records stored on this device. No transactions have been recorded yet.</string>
+    <string name="dashboard_data_note">Figures are calculated from records stored on this device. Profit shown is gross profit (sales minus cost of goods); expenses are added in a later phase. Charts arrive with Reports.</string>
 
     <string name="module_not_built_body">This module has not been built yet. It will be added in an upcoming development phase.</string>
 

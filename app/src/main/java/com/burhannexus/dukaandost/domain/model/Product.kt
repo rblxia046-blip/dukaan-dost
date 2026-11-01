@@ -40,6 +40,7 @@ data class StockMovement(
     val type: StockMovementType,
     val quantityChange: BigDecimal,
     val balanceAfter: BigDecimal,
+    val note: String,
     val createdAt: Long
 )
 

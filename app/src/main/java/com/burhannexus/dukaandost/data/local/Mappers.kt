@@ -32,5 +32,20 @@ fun StockMovementEntity.toDomain(): StockMovement = StockMovement(
     type = runCatching { StockMovementType.valueOf(type) }.getOrDefault(StockMovementType.ADJUSTMENT),
     quantityChange = Minor.milliToQuantity(quantityChangeMilli),
     balanceAfter = Minor.milliToQuantity(balanceAfterMilli),
+    note = note,
     createdAt = createdAt
 )
+
+fun InvoiceRow.toSummary(): com.burhannexus.dukaandost.domain.model.InvoiceSummary =
+    com.burhannexus.dukaandost.domain.model.InvoiceSummary(
+        id = id,
+        number = number,
+        createdAt = createdAt,
+        partyName = partyName,
+        total = Minor.minorToMoney(totalMinor),
+        paid = Minor.minorToMoney(paidMinor)
+    )
+
+fun paymentMethodOf(value: String): com.burhannexus.dukaandost.domain.model.PaymentMethod =
+    runCatching { com.burhannexus.dukaandost.domain.model.PaymentMethod.valueOf(value) }
+        .getOrDefault(com.burhannexus.dukaandost.domain.model.PaymentMethod.CASH)

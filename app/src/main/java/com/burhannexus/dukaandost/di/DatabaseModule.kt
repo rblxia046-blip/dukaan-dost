@@ -4,7 +4,11 @@ import android.content.Context
 import androidx.room.Room
 import com.burhannexus.dukaandost.data.local.AppDatabase
 import com.burhannexus.dukaandost.data.local.dao.CategoryDao
+import com.burhannexus.dukaandost.data.local.dao.CustomerDao
 import com.burhannexus.dukaandost.data.local.dao.ProductDao
+import com.burhannexus.dukaandost.data.local.dao.PurchaseDao
+import com.burhannexus.dukaandost.data.local.dao.SaleDao
+import com.burhannexus.dukaandost.data.local.dao.SupplierDao
 import com.burhannexus.dukaandost.data.local.dao.StockMovementDao
 import dagger.Module
 import dagger.Provides
@@ -32,4 +36,16 @@ object DatabaseModule {
 
     @Provides
     fun provideStockMovementDao(db: AppDatabase): StockMovementDao = db.stockMovementDao()
+
+    @Provides
+    fun provideSupplierDao(db: AppDatabase): SupplierDao = db.supplierDao()
+
+    @Provides
+    fun provideCustomerDao(db: AppDatabase): CustomerDao = db.customerDao()
+
+    @Provides
+    fun providePurchaseDao(db: AppDatabase): PurchaseDao = db.purchaseDao()
+
+    @Provides
+    fun provideSaleDao(db: AppDatabase): SaleDao = db.saleDao()
 }

@@ -14,6 +14,12 @@ import com.burhannexus.dukaandost.ui.products.ProductDetailScreen
 import com.burhannexus.dukaandost.ui.products.ProductEditScreen
 import com.burhannexus.dukaandost.ui.products.ProductsScreen
 import com.burhannexus.dukaandost.ui.settings.SettingsScreen
+import com.burhannexus.dukaandost.ui.trade.PosScreen
+import com.burhannexus.dukaandost.ui.trade.PurchaseEditorScreen
+import com.burhannexus.dukaandost.ui.trade.PurchaseInvoiceScreen
+import com.burhannexus.dukaandost.ui.trade.PurchasesScreen
+import com.burhannexus.dukaandost.ui.trade.SaleInvoiceScreen
+import com.burhannexus.dukaandost.ui.trade.SalesHistoryScreen
 
 @Composable
 fun AppNavHost(
@@ -22,9 +28,12 @@ fun AppNavHost(
     modifier: Modifier = Modifier
 ) {
     val productIdArg = listOf(navArgument("productId") { type = NavType.LongType })
+    val invoiceIdArg = listOf(navArgument("invoiceId") { type = NavType.LongType })
     val builtDestinations = setOf(
         AppDestination.Dashboard,
         AppDestination.Products,
+        AppDestination.Purchases,
+        AppDestination.Sales,
         AppDestination.Settings
     )
 
@@ -54,6 +63,41 @@ fun AppNavHost(
                 onEdit = { id -> navController.navigate(ProductRoutes.edit(id)) },
                 onBack = { navController.popBackStack() }
             )
+        }
+
+        composable(AppDestination.Purchases.route) {
+            PurchasesScreen(
+                contentPadding = contentPadding,
+                onNewPurchase = { navController.navigate(TradeRoutes.PURCHASE_NEW) },
+                onOpen = { id -> navController.navigate(TradeRoutes.purchaseDetail(id)) }
+            )
+        }
+        composable(TradeRoutes.PURCHASE_NEW) {
+            PurchaseEditorScreen(
+                contentPadding = contentPadding,
+                onDone = { navController.popBackStack() },
+                onOpenInvoice = { id -> navController.navigate(TradeRoutes.purchaseDetail(id)) }
+            )
+        }
+        composable(TradeRoutes.PURCHASE_DETAIL, arguments = invoiceIdArg) {
+            PurchaseInvoiceScreen(contentPadding = contentPadding, onBack = { navController.popBackStack() })
+        }
+
+        composable(AppDestination.Sales.route) {
+            PosScreen(
+                contentPadding = contentPadding,
+                onOpenHistory = { navController.navigate(TradeRoutes.SALES_HISTORY) },
+                onOpenInvoice = { id -> navController.navigate(TradeRoutes.saleDetail(id)) }
+            )
+        }
+        composable(TradeRoutes.SALES_HISTORY) {
+            SalesHistoryScreen(
+                contentPadding = contentPadding,
+                onOpen = { id -> navController.navigate(TradeRoutes.saleDetail(id)) }
+            )
+        }
+        composable(TradeRoutes.SALE_DETAIL, arguments = invoiceIdArg) {
+            SaleInvoiceScreen(contentPadding = contentPadding, onBack = { navController.popBackStack() })
         }
 
         composable(AppDestination.Settings.route) { SettingsScreen(contentPadding) }

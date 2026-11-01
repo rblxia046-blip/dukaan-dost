@@ -95,3 +95,104 @@ interface StockMovementDao {
     @Query("SELECT * FROM stock_movements WHERE productId = :productId ORDER BY createdAt DESC, id DESC")
     fun observeForProduct(productId: Long): Flow<List<StockMovementEntity>>
 }
+
+@Dao
+interface SupplierDao {
+    @Query("SELECT * FROM suppliers WHERE isActive = 1 ORDER BY name COLLATE NOCASE")
+    fun observeActive(): Flow<List<com.burhannexus.dukaandost.data.local.entity.SupplierEntity>>
+
+    @Insert
+    suspend fun insert(entity: com.burhannexus.dukaandost.data.local.entity.SupplierEntity): Long
+}
+
+@Dao
+interface CustomerDao {
+    @Query("SELECT * FROM customers WHERE isActive = 1 ORDER BY name COLLATE NOCASE")
+    fun observeActive(): Flow<List<com.burhannexus.dukaandost.data.local.entity.CustomerEntity>>
+
+    @Insert
+    suspend fun insert(entity: com.burhannexus.dukaandost.data.local.entity.CustomerEntity): Long
+}
+
+@Dao
+interface PurchaseDao {
+    @Insert
+    suspend fun insert(entity: com.burhannexus.dukaandost.data.local.entity.PurchaseEntity): Long
+
+    @Insert
+    suspend fun insertItem(entity: com.burhannexus.dukaandost.data.local.entity.PurchaseItemEntity): Long
+
+    @Query("SELECT COALESCE(MAX(number), 0) FROM purchases")
+    suspend fun maxNumber(): Long
+
+    @Query(
+        """SELECT p.id AS id, p.number AS number, p.createdAt AS createdAt, p.totalMinor AS totalMinor,
+           p.paidMinor AS paidMinor, s.name AS partyName
+           FROM purchases p LEFT JOIN suppliers s ON s.id = p.supplierId
+           ORDER BY p.createdAt DESC, p.id DESC LIMIT :limit"""
+    )
+    fun observeRecent(limit: Int): Flow<List<com.burhannexus.dukaandost.data.local.InvoiceRow>>
+
+    @Query(
+        """SELECT p.*, s.name AS partyName FROM purchases p
+           LEFT JOIN suppliers s ON s.id = p.supplierId WHERE p.id = :id"""
+    )
+    fun observeById(id: Long): Flow<com.burhannexus.dukaandost.data.local.PurchaseWithSupplier?>
+
+    @Query(
+        """SELECT i.*, pr.name AS productName FROM purchase_items i
+           JOIN products pr ON pr.id = i.productId WHERE i.purchaseId = :id ORDER BY i.id"""
+    )
+    fun observeItems(id: Long): Flow<List<com.burhannexus.dukaandost.data.local.PurchaseItemRow>>
+
+    @Query("SELECT COALESCE(SUM(totalMinor - paidMinor), 0) FROM purchases")
+    fun observePayable(): Flow<Long>
+
+    @Query("SELECT COALESCE(SUM(paidMinor), 0) FROM purchases")
+    fun observePaidTotal(): Flow<Long>
+}
+
+@Dao
+interface SaleDao {
+    @Insert
+    suspend fun insert(entity: com.burhannexus.dukaandost.data.local.entity.SaleEntity): Long
+
+    @Insert
+    suspend fun insertItem(entity: com.burhannexus.dukaandost.data.local.entity.SaleItemEntity): Long
+
+    @Query("SELECT COALESCE(MAX(number), 0) FROM sales")
+    suspend fun maxNumber(): Long
+
+    @Query("SELECT * FROM sales WHERE clientToken = :token LIMIT 1")
+    suspend fun findByToken(token: String): com.burhannexus.dukaandost.data.local.entity.SaleEntity?
+
+    @Query(
+        """SELECT s.id AS id, s.number AS number, s.createdAt AS createdAt, s.totalMinor AS totalMinor,
+           s.paidMinor AS paidMinor, c.name AS partyName
+           FROM sales s LEFT JOIN customers c ON c.id = s.customerId
+           ORDER BY s.createdAt DESC, s.id DESC LIMIT :limit"""
+    )
+    fun observeRecent(limit: Int): Flow<List<com.burhannexus.dukaandost.data.local.InvoiceRow>>
+
+    @Query(
+        """SELECT s.*, c.name AS partyName FROM sales s
+           LEFT JOIN customers c ON c.id = s.customerId WHERE s.id = :id"""
+    )
+    fun observeById(id: Long): Flow<com.burhannexus.dukaandost.data.local.SaleWithCustomer?>
+
+    @Query("SELECT * FROM sale_items WHERE saleId = :id ORDER BY id")
+    fun observeItems(id: Long): Flow<List<com.burhannexus.dukaandost.data.local.entity.SaleItemEntity>>
+
+    @Query("SELECT COALESCE(SUM(totalMinor), 0) FROM sales WHERE createdAt >= :start AND createdAt < :end")
+    fun observeSalesTotal(start: Long, end: Long): Flow<Long>
+
+    /** Gross profit = sales total (after discounts) minus cost of goods sold. */
+    @Query("SELECT COALESCE(SUM(totalMinor - cogsMinor), 0) FROM sales WHERE createdAt >= :start AND createdAt < :end")
+    fun observeProfit(start: Long, end: Long): Flow<Long>
+
+    @Query("SELECT COALESCE(SUM(totalMinor - paidMinor), 0) FROM sales")
+    fun observeReceivable(): Flow<Long>
+
+    @Query("SELECT COALESCE(SUM(paidMinor), 0) FROM sales")
+    fun observePaidTotal(): Flow<Long>
+}

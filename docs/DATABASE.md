@@ -1,4 +1,4 @@
-# Database (Room / SQLite) - schema version 1
+# Database (Room / SQLite) - schema version 2
 
 File: `dukaan_dost.db`, local to each installation. Foreign keys are enforced.
 
@@ -15,3 +15,13 @@ File: `dukaan_dost.db`, local to each installation. Foreign keys are enforced.
 - Saving a product and its stock movement happen in one transaction.
 - Schema changes need a version bump plus a Migration. Destructive migration is not used.
 - Exported schemas go to `app/schemas/` and should be committed.
+
+## Version 2 tables (Phase 3)
+| Table | Purpose |
+|---|---|
+| suppliers, customers | name, phone, opening balance (full screens and ledgers in Phase 4) |
+| purchases, purchase_items | invoice header (discount, extra expenses, total, paid) and lines (incl. landed cost) |
+| sales, sale_items | invoice header (`clientToken` unique = duplicate protection, `cogsMinor`) and lines (name and cost snapshot) |
+
+Migration 1 -> 2 only creates tables; existing data is untouched.
+Invoices and items are never deleted (foreign keys use RESTRICT).

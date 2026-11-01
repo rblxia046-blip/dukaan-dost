@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Shared -->
+    <string name="pick_product_title">Choose product</string>
+    <string name="pick_product_none">No products found. Add products first.</string>
+    <string name="pick_product_stock">In stock: %1$s %2$s</string>
+    <string name="party_none">None</string>
+    <string name="party_add_new">Add new</string>
+    <string name="party_name">Name</string>
+    <string name="party_phone">Phone (optional)</string>
+    <string name="pay_title">Payment</string>
+    <string name="pay_full">Full payment</string>
+    <string name="pay_partial">Partial</string>
+    <string name="pay_credit">Credit</string>
+    <string name="pay_amount_paid">Amount paid now</string>
+    <string name="pay_amount_error">Enter an amount between 0 and the total.</string>
+    <string name="pay_remaining">Remaining balance</string>
+    <string name="method_cash">Cash</string>
+    <string name="method_bank">Bank</string>
+    <string name="method_wallet">Mobile wallet</string>
+    <string name="cart_increase">Increase quantity</string>
+    <string name="cart_decrease">Decrease quantity</string>
+    <string name="cart_remove">Remove item</string>
+    <string name="line_quantity">Quantity</string>
+    <string name="line_unit_cost">Unit cost</string>
+    <string name="line_discount">Discount (amount)</string>
+    <string name="line_discount_too_high">Discount cannot be more than the item amount.</string>
+    <string name="trade_err_amount">Please check the amounts: discount and payment must be valid.</string>
+    <string name="trade_err_product_missing">A product in this list no longer exists. Remove it and try again.</string>
+    <string name="trade_err_save_failed">Could not save. Nothing was changed. Please try again.</string>
+    <string name="view_invoice">View invoice</string>
+
+    <!-- POS -->
+    <string name="pos_title">New sale</string>
+    <string name="sales_history">History</string>
+    <string name="pos_add_product">Add product</string>
+    <string name="pos_cart_empty">No items yet. Tap Add product to start a sale.</string>
+    <string name="pos_customer_label">Customer (required for credit or partial)</string>
+    <string name="pos_complete_sale">Complete sale</string>
+    <string name="pos_err_empty">Add at least one product.</string>
+    <string name="pos_err_out_of_stock">%1$s is out of stock.</string>
+    <string name="pos_err_stock">Not enough stock for %1$s. Available: %2$s.</string>
+    <string name="pos_only_in_stock">Only %1$s %2$s of %3$s in stock.</string>
+    <string name="pos_err_customer_required">Choose or add a customer for credit or partial payment.</string>
+    <string name="pos_sale_done_title">Sale completed</string>
+    <string name="pos_sale_done_body">Invoice %1$s was saved and stock was updated.</string>
+    <string name="pos_new_sale">New sale</string>
+    <string name="sales_history_empty">No sales yet. Completed sales appear here.</string>
+    <string name="walk_in_customer">Walk-in customer</string>
+
+    <!-- Purchases -->
+    <string name="purchase_new">New purchase</string>
+    <string name="purchases_empty">No purchases yet. Tap + to record stock you bought.</string>
+    <string name="purchase_supplier_label">Supplier (required for credit or partial)</string>
+    <string name="purchase_cart_empty">No items yet. Tap Add product.</string>
+    <string name="purchase_extra_label">Extra expenses (transport etc.)</string>
+    <string name="purchase_save">Save purchase</string>
+    <string name="purchase_err_empty">Add at least one product.</string>
+    <string name="purchase_err_supplier_required">Choose or add a supplier for credit or partial payment.</string>
+    <string name="purchase_done_title">Purchase saved</string>
+    <string name="purchase_done_body">Purchase %1$s was saved, stock and average cost were updated.</string>
+    <string name="purchase_back_to_list">Back to list</string>
+    <string name="no_supplier">No supplier</string>
+
+    <!-- Invoice -->
+    <string name="invoice_sale_title">Sales invoice</string>
+    <string name="invoice_purchase_title">Purchase invoice</string>
+    <string name="invoice_customer">Customer</string>
+    <string name="invoice_supplier">Supplier</string>
+    <string name="invoice_subtotal">Subtotal</string>
+    <string name="invoice_discount">Discount</string>
+    <string name="invoice_extra">Extra expenses</string>
+    <string name="invoice_total">Total</string>
+    <string name="invoice_paid_amount">Paid</string>
+    <string name="invoice_method">Payment method</string>
+    <string name="invoice_share">Share invoice</string>
+    <string name="invoice_paid">Paid</string>
+    <string name="invoice_remaining_short">Due %1$s</string>
+</resources>

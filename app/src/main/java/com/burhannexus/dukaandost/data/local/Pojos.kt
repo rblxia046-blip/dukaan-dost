@@ -20,3 +20,27 @@ data class CategoryWithCount(
     val name: String,
     val productCount: Int
 )
+
+data class InvoiceRow(
+    val id: Long,
+    val number: Long,
+    val createdAt: Long,
+    val totalMinor: Long,
+    val paidMinor: Long,
+    val partyName: String?
+)
+
+data class PurchaseWithSupplier(
+    @Embedded val purchase: com.burhannexus.dukaandost.data.local.entity.PurchaseEntity,
+    val partyName: String?
+)
+
+data class PurchaseItemRow(
+    @Embedded val item: com.burhannexus.dukaandost.data.local.entity.PurchaseItemEntity,
+    val productName: String
+)
+
+data class SaleWithCustomer(
+    @Embedded val sale: com.burhannexus.dukaandost.data.local.entity.SaleEntity,
+    val partyName: String?
+)

@@ -13,7 +13,9 @@ data class DashboardSummary(
     val customerReceivables: BigDecimal,
     val supplierPayables: BigDecimal,
     val expenses: BigDecimal,
-    val cashBalance: BigDecimal
+    val cashBalance: BigDecimal,
+    val recentSales: List<InvoiceSummary> = emptyList(),
+    val recentPurchases: List<InvoiceSummary> = emptyList()
 ) {
     companion object {
         /** Genuinely empty state: no records exist yet. Not sample data. */

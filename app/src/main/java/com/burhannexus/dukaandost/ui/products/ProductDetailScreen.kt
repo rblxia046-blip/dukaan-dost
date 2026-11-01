@@ -231,7 +231,11 @@ private fun MovementRow(movement: StockMovement, unit: String) {
             verticalAlignment = Alignment.CenterVertically
         ) {
             Column(Modifier.weight(1f)) {
-                Text(stringResource(movement.type.labelRes()), style = MaterialTheme.typography.titleMedium)
+                val label = stringResource(movement.type.labelRes())
+                Text(
+                    if (movement.note.isEmpty()) label else "$label ${movement.note}",
+                    style = MaterialTheme.typography.titleMedium
+                )
                 Text(
                     Instant.ofEpochMilli(movement.createdAt).atZone(ZoneId.systemDefault()).format(DateTimeFormat),
                     style = MaterialTheme.typography.bodySmall,

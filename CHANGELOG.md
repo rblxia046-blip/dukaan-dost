@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.3.0 - Phase 3 (part 1): Purchases and Sales / POS
+- Database v2 with migration 1 -> 2 (suppliers, customers, purchases, sales and their items)
+- Purchases: multi-item invoice, item and invoice discount, extra expenses, cash/partial/credit, supplier quick-add
+- Sales / POS: cart, quantity +/-, item and invoice discount, cash/partial/credit, customer quick-add
+- Stock rises on purchase and falls on sale in one database transaction; stock history records both
+- Weighted average cost (see docs/ACCOUNTING.md); cost of goods stored per sale
+- Duplicate-sale protection (unique checkout token), no selling above available stock
+- Sequential invoice numbers (S-000001, P-000001), history lists, invoice view, text share (WhatsApp etc.)
+- Dashboard: sales, profit, receivables, payables, cash balance and recent invoices from real records
+- Unit tests: calculators, weighted average, invoice text
+
 ## 0.2.0 - Phase 2: Database and Products
 - Room database (SQLite) with foreign keys, exported schema, migration scaffold
 - Entities: categories, products, stock movements

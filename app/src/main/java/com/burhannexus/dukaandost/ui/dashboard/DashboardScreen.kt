@@ -51,7 +51,9 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.burhannexus.dukaandost.R
+import com.burhannexus.dukaandost.core.InvoiceNumbers
 import com.burhannexus.dukaandost.core.Money
+import com.burhannexus.dukaandost.domain.model.InvoiceSummary
 import com.burhannexus.dukaandost.domain.model.DashboardPeriod
 import com.burhannexus.dukaandost.ui.common.DeveloperFooter
 import java.time.Instant
@@ -145,8 +147,12 @@ fun DashboardScreen(
         }
         item { EmptyInfoCard(R.string.chart_monthly_sales, R.string.chart_empty) }
         item { EmptyInfoCard(R.string.chart_monthly_profit, R.string.chart_empty) }
-        item { EmptyInfoCard(R.string.recent_sales, R.string.recent_empty) }
-        item { EmptyInfoCard(R.string.recent_purchases, R.string.recent_empty) }
+        item {
+            RecentCard(R.string.recent_sales, s.recentSales) { InvoiceNumbers.sale(it) }
+        }
+        item {
+            RecentCard(R.string.recent_purchases, s.recentPurchases) { InvoiceNumbers.purchase(it) }
+        }
         item {
             Text(
                 text = stringResource(R.string.dashboard_data_note),
@@ -219,6 +225,53 @@ private fun EmptyInfoCard(@StringRes titleRes: Int, @StringRes messageRes: Int) 
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
+        }
+    }
+}
+
+@Composable
+private fun RecentCard(
+    @StringRes titleRes: Int,
+    items: List<InvoiceSummary>,
+    numberText: (Long) -> String
+) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
+    ) {
+        Column(Modifier.padding(16.dp)) {
+            Text(stringResource(titleRes), style = MaterialTheme.typography.titleMedium)
+            Spacer(Modifier.height(6.dp))
+            if (items.isEmpty()) {
+                Text(
+                    stringResource(R.string.recent_empty),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            } else {
+                items.forEach { invoice ->
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 4.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Column(Modifier.weight(1f)) {
+                            Text(numberText(invoice.number), style = MaterialTheme.typography.bodyMedium)
+                            invoice.partyName?.let {
+                                Text(
+                                    it,
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    maxLines = 1
+                                )
+                            }
+                        }
+                        Text(Money.format(invoice.total), style = MaterialTheme.typography.bodyMedium)
+                    }
+                }
+            }
         }
     }
 }
