@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Dukaan Dost</string>
+    <string name="tagline">Har Dukandar Ka Digital Hisaab Kitaab</string>
+
+    <string name="nav_dashboard">Dashboard</string>
+    <string name="nav_products">Products</string>
+    <string name="nav_purchases">Purchases</string>
+    <string name="nav_sales">Sales / POS</string>
+    <string name="nav_customers">Customers</string>
+    <string name="nav_suppliers">Suppliers</string>
+    <string name="nav_expenses">Expenses</string>
+    <string name="nav_reports">Reports</string>
+    <string name="nav_secret_code">Secret Code</string>
+    <string name="nav_settings">Settings</string>
+
+    <string name="open_menu">Open menu</string>
+    <string name="notifications">Notifications</string>
+    <string name="business_menu">Business menu</string>
+    <string name="no_notifications_title">Notifications</string>
+    <string name="no_notifications_body">You have no notifications.</string>
+    <string name="ok">OK</string>
+    <string name="cancel">Cancel</string>
+    <string name="business_not_set">Business profile: not set up yet</string>
+    <string name="about">About</string>
+
+    <string name="developed_by">Developed by %1$s</string>
+    <string name="phone_label">Phone: %1$s</string>
+    <string name="email_label">Email: %1$s</string>
+
+    <string name="period_today">Today</string>
+    <string name="period_yesterday">Yesterday</string>
+    <string name="period_this_week">This Week</string>
+    <string name="period_this_month">This Month</string>
+    <string name="period_this_year">This Year</string>
+    <string name="period_custom">Custom Range</string>
+    <string name="showing_range">Showing: %1$s to %2$s</string>
+
+    <string name="metric_sales">Sales</string>
+    <string name="metric_profit">Profit</string>
+    <string name="metric_total_products">Total Products</string>
+    <string name="metric_total_stock">Total Stock Quantity</string>
+    <string name="metric_low_stock">Low-Stock Products</string>
+    <string name="metric_out_of_stock">Out-of-Stock Products</string>
+    <string name="metric_receivables">Customer Receivables</string>
+    <string name="metric_payables">Supplier Payables</string>
+    <string name="metric_expenses">Expenses</string>
+    <string name="metric_cash_balance">Cash Balance</string>
+
+    <string name="chart_monthly_sales">Monthly Sales</string>
+    <string name="chart_monthly_profit">Monthly Profit</string>
+    <string name="chart_empty">No data yet. This chart fills in from your recorded transactions.</string>
+    <string name="recent_sales">Recent Sales</string>
+    <string name="recent_purchases">Recent Purchases</string>
+    <string name="recent_empty">Nothing recorded yet.</string>
+    <string name="dashboard_data_note">Figures are calculated from records stored on this device. No transactions have been recorded yet.</string>
+
+    <string name="module_not_built_body">This module has not been built yet. It will be added in an upcoming development phase.</string>
+
+    <string name="settings_intro">Settings categories are added in later phases.</string>
+    <string name="app_version">App version</string>
+    <string name="developer_information">Developer information</string>
+</resources>
