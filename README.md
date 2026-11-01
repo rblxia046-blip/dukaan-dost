@@ -4,7 +4,7 @@ Har Dukandar Ka Digital Hisaab Kitaab. Offline-first shop management app for Pak
 Developed by Burhan Nexus.
 
 ## Status
-Phase 1 (foundation) complete: theme, navigation, toolbar, dashboard UI.
+Phase 1 (foundation) and Phase 2 (database, products, categories) complete.
 
 ## Build
 1. Install Android Studio (Koala or newer) with JDK 17.
