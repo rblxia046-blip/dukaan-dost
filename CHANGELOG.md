@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.3.2 - Shop profile and PDF receipts
+- First run asks for shop name, mobile number, address, owner, receipt message and logo (DataStore + private logo file)
+- Shop details editable later in Settings
+- PDF receipt (A5) with logo, shop name, address and phone on top; multi-page; Share PDF and Print
+- Text share also starts with the shop details
+- Shop name shown in the toolbar business menu
+
 ## 0.3.1 - Phase 3 (part 2): Returns
 - Database v3 with migration 2 -> 3 (sale_returns, sale_return_items, purchase_returns, purchase_return_items)
 - Sales return: stock goes back up, receivable falls first, only the overpayment is refunded in cash
