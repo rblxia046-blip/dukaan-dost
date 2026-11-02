@@ -12,12 +12,21 @@ import java.time.format.DateTimeFormatter
 object InvoiceTextFormatter {
     private val dateFormat = DateTimeFormatter.ofPattern("dd MMM yyyy, hh:mm a")
 
-    fun format(invoice: InvoiceDetail, title: String, partyLabel: String): String {
+    /**
+     * [businessLines] are the shop name, address and phone printed at the top;
+     * when empty, the app name is used.
+     */
+    fun format(
+        invoice: InvoiceDetail,
+        title: String,
+        partyLabel: String,
+        businessLines: List<String> = emptyList()
+    ): String {
         val number = if (invoice.kind == InvoiceKind.SALE) InvoiceNumbers.sale(invoice.number)
         else InvoiceNumbers.purchase(invoice.number)
         val date = Instant.ofEpochMilli(invoice.createdAt).atZone(ZoneId.systemDefault()).format(dateFormat)
         return buildString {
-            appendLine("*Dukaan Dost*")
+            if (businessLines.isEmpty()) appendLine("*Dukaan Dost*") else businessLines.forEach { appendLine(it) }
             appendLine("$title $number")
             appendLine(date)
             invoice.partyName?.let { appendLine("$partyLabel: $it") }

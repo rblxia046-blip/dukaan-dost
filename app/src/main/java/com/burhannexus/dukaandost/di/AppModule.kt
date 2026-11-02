@@ -1,11 +1,13 @@
 package com.burhannexus.dukaandost.di
 
+import com.burhannexus.dukaandost.data.repository.BusinessProfileRepositoryImpl
 import com.burhannexus.dukaandost.data.repository.CategoryRepositoryImpl
 import com.burhannexus.dukaandost.data.repository.PartyRepositoryImpl
 import com.burhannexus.dukaandost.data.repository.ProductRepositoryImpl
 import com.burhannexus.dukaandost.data.repository.PurchaseRepositoryImpl
 import com.burhannexus.dukaandost.data.repository.RoomDashboardRepository
 import com.burhannexus.dukaandost.data.repository.SalesRepositoryImpl
+import com.burhannexus.dukaandost.domain.repository.BusinessProfileRepository
 import com.burhannexus.dukaandost.domain.repository.CategoryRepository
 import com.burhannexus.dukaandost.domain.repository.DashboardRepository
 import com.burhannexus.dukaandost.domain.repository.PartyRepository
@@ -44,4 +46,8 @@ abstract class AppModule {
     @Binds
     @Singleton
     abstract fun bindSalesRepository(impl: SalesRepositoryImpl): SalesRepository
+
+    @Binds
+    @Singleton
+    abstract fun bindBusinessProfileRepository(impl: BusinessProfileRepositoryImpl): BusinessProfileRepository
 }

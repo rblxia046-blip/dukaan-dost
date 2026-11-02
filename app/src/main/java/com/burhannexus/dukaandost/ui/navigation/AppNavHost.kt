@@ -8,6 +8,7 @@ import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
+import com.burhannexus.dukaandost.ui.business.BusinessProfileScreen
 import com.burhannexus.dukaandost.ui.common.ModuleNotBuiltScreen
 import com.burhannexus.dukaandost.ui.dashboard.DashboardScreen
 import com.burhannexus.dukaandost.ui.products.ProductDetailScreen
@@ -119,7 +120,19 @@ fun AppNavHost(
             ReturnScreen(contentPadding = contentPadding, onDone = { navController.popBackStack() })
         }
 
-        composable(AppDestination.Settings.route) { SettingsScreen(contentPadding) }
+        composable(AppDestination.Settings.route) {
+            SettingsScreen(
+                contentPadding = contentPadding,
+                onEditBusiness = { navController.navigate(SettingsRoutes.BUSINESS) }
+            )
+        }
+        composable(SettingsRoutes.BUSINESS) {
+            BusinessProfileScreen(
+                contentPadding = contentPadding,
+                firstRun = false,
+                onSaved = { navController.popBackStack() }
+            )
+        }
 
         AppDestination.entries
             .filter { it !in builtDestinations }

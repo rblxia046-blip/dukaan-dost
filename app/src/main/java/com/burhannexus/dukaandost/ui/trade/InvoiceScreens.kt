@@ -1,6 +1,7 @@
 package com.burhannexus.dukaandost.ui.trade
 
 import android.content.Intent
+import android.widget.Toast
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -13,6 +14,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Print
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
@@ -27,6 +29,10 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -39,10 +45,15 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.burhannexus.dukaandost.R
 import com.burhannexus.dukaandost.core.InvoiceNumbers
 import com.burhannexus.dukaandost.core.Money
+import com.burhannexus.dukaandost.data.pdf.PdfLabels
 import com.burhannexus.dukaandost.domain.calc.InvoiceTextFormatter
+import com.burhannexus.dukaandost.domain.model.BusinessProfile
 import com.burhannexus.dukaandost.domain.model.InvoiceDetail
 import com.burhannexus.dukaandost.domain.model.InvoiceKind
 import com.burhannexus.dukaandost.domain.model.InvoiceSummary
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.launch
+import java.io.File
 import java.time.Instant
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
@@ -188,7 +199,15 @@ fun SaleInvoiceScreen(
     viewModel: SaleInvoiceViewModel = hiltViewModel()
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
-    InvoiceStateContent(state, contentPadding, onBack, onReturn)
+    val profile by viewModel.profile.collectAsStateWithLifecycle()
+    InvoiceStateContent(
+        state = state,
+        contentPadding = contentPadding,
+        onBack = onBack,
+        onReturn = onReturn,
+        profile = profile,
+        createPdf = { invoice, labels -> viewModel.createPdf(invoice, labels) }
+    )
 }
 
 @Composable
@@ -199,7 +218,15 @@ fun PurchaseInvoiceScreen(
     viewModel: PurchaseInvoiceViewModel = hiltViewModel()
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
-    InvoiceStateContent(state, contentPadding, onBack, onReturn)
+    val profile by viewModel.profile.collectAsStateWithLifecycle()
+    InvoiceStateContent(
+        state = state,
+        contentPadding = contentPadding,
+        onBack = onBack,
+        onReturn = onReturn,
+        profile = profile,
+        createPdf = { invoice, labels -> viewModel.createPdf(invoice, labels) }
+    )
 }
 
 @Composable
@@ -207,7 +234,9 @@ private fun InvoiceStateContent(
     state: InvoiceState,
     contentPadding: PaddingValues,
     onBack: () -> Unit,
-    onReturn: (Long) -> Unit
+    onReturn: (Long) -> Unit,
+    profile: BusinessProfile?,
+    createPdf: suspend (InvoiceDetail, PdfLabels) -> File
 ) {
     when (state) {
         InvoiceState.Loading -> Box(
@@ -218,12 +247,24 @@ private fun InvoiceStateContent(
         ) { CircularProgressIndicator() }
 
         InvoiceState.Missing -> LaunchedEffect(Unit) { onBack() }
-        is InvoiceState.Found -> InvoiceContent(state.invoice, contentPadding, onReturn = { onReturn(state.invoice.id) })
+        is InvoiceState.Found -> InvoiceContent(
+            invoice = state.invoice,
+            contentPadding = contentPadding,
+            profile = profile,
+            onReturn = { onReturn(state.invoice.id) },
+            createPdf = createPdf
+        )
     }
 }
 
 @Composable
-private fun InvoiceContent(invoice: InvoiceDetail, contentPadding: PaddingValues, onReturn: () -> Unit) {
+private fun InvoiceContent(
+    invoice: InvoiceDetail,
+    contentPadding: PaddingValues,
+    profile: BusinessProfile?,
+    onReturn: () -> Unit,
+    createPdf: suspend (InvoiceDetail, PdfLabels) -> File
+) {
     val isSale = invoice.kind == InvoiceKind.SALE
     val numberText = if (isSale) InvoiceNumbers.sale(invoice.number) else InvoiceNumbers.purchase(invoice.number)
     val title = stringResource(if (isSale) R.string.invoice_sale_title else R.string.invoice_purchase_title)
@@ -231,6 +272,45 @@ private fun InvoiceContent(invoice: InvoiceDetail, contentPadding: PaddingValues
     val partyFallback = stringResource(if (isSale) R.string.walk_in_customer else R.string.no_supplier)
     val shareTitle = stringResource(R.string.invoice_share)
     val context = LocalContext.current
+    val scope = rememberCoroutineScope()
+    var busy by remember { mutableStateOf(false) }
+    val failedText = stringResource(R.string.receipt_failed)
+    val labels = PdfLabels(
+        title = title,
+        partyLabel = partyLabel,
+        partyFallback = partyFallback,
+        phone = stringResource(R.string.receipt_phone),
+        item = stringResource(R.string.receipt_item),
+        quantity = stringResource(R.string.receipt_qty),
+        price = stringResource(R.string.receipt_price),
+        amount = stringResource(R.string.receipt_amount),
+        subtotal = stringResource(R.string.invoice_subtotal),
+        discount = stringResource(R.string.invoice_discount),
+        extraExpenses = stringResource(R.string.invoice_extra),
+        total = stringResource(R.string.invoice_total),
+        returned = stringResource(R.string.invoice_returned),
+        paid = stringResource(R.string.invoice_paid_amount),
+        refunded = stringResource(R.string.invoice_refunded),
+        remaining = stringResource(R.string.pay_remaining),
+        method = stringResource(R.string.invoice_method),
+        methodName = stringResource(invoice.paymentMethod.labelRes())
+    )
+
+    fun withPdf(action: (File) -> Unit) {
+        if (busy) return
+        busy = true
+        scope.launch {
+            try {
+                action(createPdf(invoice, labels))
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                Toast.makeText(context, failedText, Toast.LENGTH_SHORT).show()
+            } finally {
+                busy = false
+            }
+        }
+    }
 
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
@@ -346,19 +426,41 @@ private fun InvoiceContent(invoice: InvoiceDetail, contentPadding: PaddingValues
             }
         }
         item {
-            Button(
-                onClick = {
-                    val text = InvoiceTextFormatter.format(invoice, title, partyLabel)
-                    val send = Intent(Intent.ACTION_SEND).apply {
-                        type = "text/plain"
-                        putExtra(Intent.EXTRA_TEXT, text)
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
+                    Button(
+                        onClick = { withPdf { file -> sharePdf(context, file, shareTitle) } },
+                        enabled = !busy,
+                        modifier = Modifier.weight(1f)
+                    ) {
+                        Icon(Icons.Filled.Share, contentDescription = null)
+                        Text(stringResource(R.string.receipt_share_pdf), modifier = Modifier.padding(start = 8.dp))
                     }
-                    context.startActivity(Intent.createChooser(send, shareTitle))
-                },
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Icon(Icons.Filled.Share, contentDescription = null)
-                Text(shareTitle, modifier = Modifier.padding(start = 8.dp))
+                    Button(
+                        onClick = { withPdf { file -> printPdf(context, file, "$title $numberText") } },
+                        enabled = !busy,
+                        modifier = Modifier.weight(1f)
+                    ) {
+                        Icon(Icons.Filled.Print, contentDescription = null)
+                        Text(stringResource(R.string.receipt_print), modifier = Modifier.padding(start = 8.dp))
+                    }
+                }
+                OutlinedButton(
+                    onClick = {
+                        val businessLines = listOfNotNull(
+                            profile?.shopName?.takeIf { it.isNotBlank() }?.let { "*$it*" },
+                            profile?.address?.takeIf { it.isNotBlank() },
+                            profile?.phone?.takeIf { it.isNotBlank() }?.let { "${labels.phone}: $it" }
+                        )
+                        val text = InvoiceTextFormatter.format(invoice, title, partyLabel, businessLines)
+                        val send = Intent(Intent.ACTION_SEND).apply {
+                            type = "text/plain"
+                            putExtra(Intent.EXTRA_TEXT, text)
+                        }
+                        context.startActivity(Intent.createChooser(send, shareTitle))
+                    },
+                    modifier = Modifier.fillMaxWidth()
+                ) { Text(stringResource(R.string.receipt_share_text)) }
             }
         }
     }

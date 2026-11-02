@@ -61,6 +61,7 @@ import kotlinx.coroutines.launch
 @Composable
 fun AppScaffold(
     navController: NavHostController,
+    businessName: String?,
     content: @Composable (PaddingValues) -> Unit
 ) {
     val drawerState = rememberDrawerState(DrawerValue.Closed)
@@ -127,7 +128,7 @@ fun AppScaffold(
                                 onDismissRequest = { businessMenuOpen = false }
                             ) {
                                 DropdownMenuItem(
-                                    text = { Text(stringResource(R.string.business_not_set)) },
+                                    text = { Text(businessName ?: stringResource(R.string.business_not_set)) },
                                     onClick = {},
                                     enabled = false
                                 )
