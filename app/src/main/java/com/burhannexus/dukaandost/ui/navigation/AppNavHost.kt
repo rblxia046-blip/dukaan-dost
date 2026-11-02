@@ -18,6 +18,7 @@ import com.burhannexus.dukaandost.ui.trade.PosScreen
 import com.burhannexus.dukaandost.ui.trade.PurchaseEditorScreen
 import com.burhannexus.dukaandost.ui.trade.PurchaseInvoiceScreen
 import com.burhannexus.dukaandost.ui.trade.PurchasesScreen
+import com.burhannexus.dukaandost.ui.trade.ReturnScreen
 import com.burhannexus.dukaandost.ui.trade.SaleInvoiceScreen
 import com.burhannexus.dukaandost.ui.trade.SalesHistoryScreen
 
@@ -80,7 +81,11 @@ fun AppNavHost(
             )
         }
         composable(TradeRoutes.PURCHASE_DETAIL, arguments = invoiceIdArg) {
-            PurchaseInvoiceScreen(contentPadding = contentPadding, onBack = { navController.popBackStack() })
+            PurchaseInvoiceScreen(
+                contentPadding = contentPadding,
+                onBack = { navController.popBackStack() },
+                onReturn = { id -> navController.navigate(TradeRoutes.purchaseReturn(id)) }
+            )
         }
 
         composable(AppDestination.Sales.route) {
@@ -97,7 +102,21 @@ fun AppNavHost(
             )
         }
         composable(TradeRoutes.SALE_DETAIL, arguments = invoiceIdArg) {
-            SaleInvoiceScreen(contentPadding = contentPadding, onBack = { navController.popBackStack() })
+            SaleInvoiceScreen(
+                contentPadding = contentPadding,
+                onBack = { navController.popBackStack() },
+                onReturn = { id -> navController.navigate(TradeRoutes.saleReturn(id)) }
+            )
+        }
+
+        composable(
+            TradeRoutes.RETURN,
+            arguments = listOf(
+                navArgument("kind") { type = NavType.StringType },
+                navArgument("invoiceId") { type = NavType.LongType }
+            )
+        ) {
+            ReturnScreen(contentPadding = contentPadding, onDone = { navController.popBackStack() })
         }
 
         composable(AppDestination.Settings.route) { SettingsScreen(contentPadding) }

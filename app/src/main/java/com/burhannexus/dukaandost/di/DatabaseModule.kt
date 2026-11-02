@@ -7,7 +7,9 @@ import com.burhannexus.dukaandost.data.local.dao.CategoryDao
 import com.burhannexus.dukaandost.data.local.dao.CustomerDao
 import com.burhannexus.dukaandost.data.local.dao.ProductDao
 import com.burhannexus.dukaandost.data.local.dao.PurchaseDao
+import com.burhannexus.dukaandost.data.local.dao.PurchaseReturnDao
 import com.burhannexus.dukaandost.data.local.dao.SaleDao
+import com.burhannexus.dukaandost.data.local.dao.SaleReturnDao
 import com.burhannexus.dukaandost.data.local.dao.SupplierDao
 import com.burhannexus.dukaandost.data.local.dao.StockMovementDao
 import dagger.Module
@@ -48,4 +50,10 @@ object DatabaseModule {
 
     @Provides
     fun provideSaleDao(db: AppDatabase): SaleDao = db.saleDao()
+
+    @Provides
+    fun provideSaleReturnDao(db: AppDatabase): SaleReturnDao = db.saleReturnDao()
+
+    @Provides
+    fun providePurchaseReturnDao(db: AppDatabase): PurchaseReturnDao = db.purchaseReturnDao()
 }

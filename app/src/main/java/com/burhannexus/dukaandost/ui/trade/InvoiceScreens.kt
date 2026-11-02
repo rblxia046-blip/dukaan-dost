@@ -23,6 +23,7 @@ import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -183,24 +184,31 @@ fun InvoiceRowCard(invoice: InvoiceSummary, numberText: String, partyFallback: S
 fun SaleInvoiceScreen(
     contentPadding: PaddingValues,
     onBack: () -> Unit,
+    onReturn: (Long) -> Unit,
     viewModel: SaleInvoiceViewModel = hiltViewModel()
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
-    InvoiceStateContent(state, contentPadding, onBack)
+    InvoiceStateContent(state, contentPadding, onBack, onReturn)
 }
 
 @Composable
 fun PurchaseInvoiceScreen(
     contentPadding: PaddingValues,
     onBack: () -> Unit,
+    onReturn: (Long) -> Unit,
     viewModel: PurchaseInvoiceViewModel = hiltViewModel()
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
-    InvoiceStateContent(state, contentPadding, onBack)
+    InvoiceStateContent(state, contentPadding, onBack, onReturn)
 }
 
 @Composable
-private fun InvoiceStateContent(state: InvoiceState, contentPadding: PaddingValues, onBack: () -> Unit) {
+private fun InvoiceStateContent(
+    state: InvoiceState,
+    contentPadding: PaddingValues,
+    onBack: () -> Unit,
+    onReturn: (Long) -> Unit
+) {
     when (state) {
         InvoiceState.Loading -> Box(
             Modifier
@@ -210,12 +218,12 @@ private fun InvoiceStateContent(state: InvoiceState, contentPadding: PaddingValu
         ) { CircularProgressIndicator() }
 
         InvoiceState.Missing -> LaunchedEffect(Unit) { onBack() }
-        is InvoiceState.Found -> InvoiceContent(state.invoice, contentPadding)
+        is InvoiceState.Found -> InvoiceContent(state.invoice, contentPadding, onReturn = { onReturn(state.invoice.id) })
     }
 }
 
 @Composable
-private fun InvoiceContent(invoice: InvoiceDetail, contentPadding: PaddingValues) {
+private fun InvoiceContent(invoice: InvoiceDetail, contentPadding: PaddingValues, onReturn: () -> Unit) {
     val isSale = invoice.kind == InvoiceKind.SALE
     val numberText = if (isSale) InvoiceNumbers.sale(invoice.number) else InvoiceNumbers.purchase(invoice.number)
     val title = stringResource(if (isSale) R.string.invoice_sale_title else R.string.invoice_purchase_title)
@@ -283,12 +291,58 @@ private fun InvoiceContent(invoice: InvoiceDetail, contentPadding: PaddingValues
                         TotalRow(stringResource(R.string.invoice_extra), Money.format(invoice.extraExpenses))
                     }
                     TotalRow(stringResource(R.string.invoice_total), Money.format(invoice.total), bold = true)
+                    if (invoice.returnedValue.signum() > 0) {
+                        TotalRow(stringResource(R.string.invoice_returned), "-" + Money.format(invoice.returnedValue))
+                    }
                     TotalRow(stringResource(R.string.invoice_paid_amount), Money.format(invoice.paid))
+                    if (invoice.refundedAmount.signum() > 0) {
+                        TotalRow(stringResource(R.string.invoice_refunded), "-" + Money.format(invoice.refundedAmount))
+                    }
                     if (invoice.remaining.signum() > 0) {
                         TotalRow(stringResource(R.string.pay_remaining), Money.format(invoice.remaining), bold = true)
                     }
                     TotalRow(stringResource(R.string.invoice_method), stringResource(invoice.paymentMethod.labelRes()))
                 }
+            }
+        }
+        if (invoice.returns.isNotEmpty()) {
+            item {
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
+                ) {
+                    Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                        Text(stringResource(R.string.invoice_returns_title), style = MaterialTheme.typography.titleMedium)
+                        invoice.returns.forEach { r ->
+                            val returnNumber = if (isSale) InvoiceNumbers.saleReturn(r.number) else InvoiceNumbers.purchaseReturn(r.number)
+                            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                                Column(Modifier.weight(1f)) {
+                                    Text(returnNumber, style = MaterialTheme.typography.bodyMedium)
+                                    Text(
+                                        formatDate(r.createdAt),
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
+                                }
+                                Column(horizontalAlignment = Alignment.End) {
+                                    Text("-" + Money.format(r.value), style = MaterialTheme.typography.bodyMedium)
+                                    if (r.refund.signum() > 0) {
+                                        Text(
+                                            stringResource(R.string.invoice_refund_short, Money.format(r.refund)),
+                                            style = MaterialTheme.typography.bodySmall,
+                                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                                        )
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        item {
+            OutlinedButton(onClick = onReturn, modifier = Modifier.fillMaxWidth()) {
+                Text(stringResource(R.string.invoice_return_items))
             }
         }
         item {

@@ -3,6 +3,9 @@ package com.burhannexus.dukaandost.domain.repository
 import com.burhannexus.dukaandost.domain.model.InvoiceDetail
 import com.burhannexus.dukaandost.domain.model.InvoiceSummary
 import com.burhannexus.dukaandost.domain.model.Party
+import com.burhannexus.dukaandost.domain.model.ReturnInput
+import com.burhannexus.dukaandost.domain.model.ReturnResult
+import com.burhannexus.dukaandost.domain.model.ReturnableInvoice
 import com.burhannexus.dukaandost.domain.model.PurchaseInput
 import com.burhannexus.dukaandost.domain.model.PurchaseResult
 import com.burhannexus.dukaandost.domain.model.SaleInput
@@ -24,6 +27,11 @@ interface PurchaseRepository {
 
     /** Saves the invoice, raises stock, updates average cost and writes stock history in ONE transaction. */
     suspend fun save(input: PurchaseInput): PurchaseResult
+
+    fun observeReturnable(purchaseId: Long): Flow<ReturnableInvoice?>
+
+    /** Sends goods back to the supplier: stock falls, payable falls, any excess is refunded in cash. One transaction. */
+    suspend fun saveReturn(input: ReturnInput): ReturnResult
 }
 
 interface SalesRepository {
@@ -32,4 +40,9 @@ interface SalesRepository {
 
     /** Saves the invoice, lowers stock and writes stock history in ONE transaction. Idempotent per clientToken. */
     suspend fun save(input: SaleInput): SaleResult
+
+    fun observeReturnable(saleId: Long): Flow<ReturnableInvoice?>
+
+    /** Takes goods back from a customer: stock rises, receivable falls, any excess is refunded in cash. One transaction. */
+    suspend fun saveReturn(input: ReturnInput): ReturnResult
 }

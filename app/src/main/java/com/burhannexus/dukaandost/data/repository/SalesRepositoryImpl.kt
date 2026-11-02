@@ -6,13 +6,17 @@ import com.burhannexus.dukaandost.core.Minor
 import com.burhannexus.dukaandost.data.local.AppDatabase
 import com.burhannexus.dukaandost.data.local.dao.ProductDao
 import com.burhannexus.dukaandost.data.local.dao.SaleDao
+import com.burhannexus.dukaandost.data.local.dao.SaleReturnDao
 import com.burhannexus.dukaandost.data.local.dao.StockMovementDao
 import com.burhannexus.dukaandost.data.local.entity.ProductEntity
 import com.burhannexus.dukaandost.data.local.entity.SaleEntity
 import com.burhannexus.dukaandost.data.local.entity.SaleItemEntity
+import com.burhannexus.dukaandost.data.local.entity.SaleReturnEntity
+import com.burhannexus.dukaandost.data.local.entity.SaleReturnItemEntity
 import com.burhannexus.dukaandost.data.local.entity.StockMovementEntity
 import com.burhannexus.dukaandost.data.local.paymentMethodOf
 import com.burhannexus.dukaandost.data.local.toSummary
+import com.burhannexus.dukaandost.domain.calc.ReturnCalculator
 import com.burhannexus.dukaandost.domain.calc.SaleCalcLine
 import com.burhannexus.dukaandost.domain.calc.SaleCalculator
 import com.burhannexus.dukaandost.domain.calc.SaleTotals
@@ -21,6 +25,11 @@ import com.burhannexus.dukaandost.domain.model.InvoiceDetail
 import com.burhannexus.dukaandost.domain.model.InvoiceKind
 import com.burhannexus.dukaandost.domain.model.InvoiceLine
 import com.burhannexus.dukaandost.domain.model.InvoiceSummary
+import com.burhannexus.dukaandost.domain.model.ReturnInput
+import com.burhannexus.dukaandost.domain.model.ReturnResult
+import com.burhannexus.dukaandost.domain.model.ReturnSummary
+import com.burhannexus.dukaandost.domain.model.ReturnableInvoice
+import com.burhannexus.dukaandost.domain.model.ReturnableLine
 import com.burhannexus.dukaandost.domain.model.SaleInput
 import com.burhannexus.dukaandost.domain.model.SaleResult
 import com.burhannexus.dukaandost.domain.model.StockMovementType
@@ -36,6 +45,7 @@ import javax.inject.Singleton
 class SalesRepositoryImpl @Inject constructor(
     private val db: AppDatabase,
     private val saleDao: SaleDao,
+    private val returnDao: SaleReturnDao,
     private val productDao: ProductDao,
     private val movementDao: StockMovementDao
 ) : SalesRepository {
@@ -44,7 +54,7 @@ class SalesRepositoryImpl @Inject constructor(
         saleDao.observeRecent(HISTORY_LIMIT).map { rows -> rows.map { it.toSummary() } }
 
     override fun observe(id: Long): Flow<InvoiceDetail?> =
-        combine(saleDao.observeById(id), saleDao.observeItems(id)) { head, items ->
+        combine(saleDao.observeById(id), saleDao.observeItems(id), returnDao.observeForSale(id)) { head, items, returns ->
             head?.let {
                 val s = it.sale
                 InvoiceDetail(
@@ -68,7 +78,16 @@ class SalesRepositoryImpl @Inject constructor(
                     total = Minor.minorToMoney(s.totalMinor),
                     paid = Minor.minorToMoney(s.paidMinor),
                     paymentMethod = paymentMethodOf(s.paymentMethod),
-                    note = s.note
+                    note = s.note,
+                    returns = returns.map { r ->
+                        ReturnSummary(
+                            id = r.id,
+                            number = r.number,
+                            createdAt = r.createdAt,
+                            value = Minor.minorToMoney(r.valueMinor),
+                            refund = Minor.minorToMoney(r.refundMinor)
+                        )
+                    }
                 )
             }
         }
@@ -164,6 +183,134 @@ class SalesRepositoryImpl @Inject constructor(
         }
         return SaleResult.Success(saleId, number)
     }
+
+    override fun observeReturnable(saleId: Long): Flow<ReturnableInvoice?> =
+        combine(
+            saleDao.observeById(saleId),
+            saleDao.observeItems(saleId),
+            returnDao.observeReturnedByItem(saleId),
+            returnDao.observeForSale(saleId)
+        ) { head, items, returnedRows, returns ->
+            head?.let {
+                val sale = it.sale
+                val returnedByItem = returnedRows.associateBy { row -> row.itemId }
+                ReturnableInvoice(
+                    kind = InvoiceKind.SALE,
+                    invoiceId = sale.id,
+                    number = sale.number,
+                    partyName = it.partyName,
+                    lines = items.map { item ->
+                        val prev = returnedByItem[item.id]
+                        ReturnableLine(
+                            itemId = item.id,
+                            name = item.productName,
+                            soldQuantity = Minor.milliToQuantity(item.quantityMilli),
+                            returnedQuantity = Minor.milliToQuantity(prev?.quantityMilli ?: 0L),
+                            netLineValue = ReturnCalculator.netLineValue(
+                                Minor.minorToMoney(item.lineTotalMinor),
+                                Minor.minorToMoney(sale.subtotalMinor),
+                                Minor.minorToMoney(sale.discountMinor)
+                            ),
+                            returnedValue = Minor.minorToMoney(prev?.valueMinor ?: 0L)
+                        )
+                    },
+                    total = Minor.minorToMoney(sale.totalMinor),
+                    paid = Minor.minorToMoney(sale.paidMinor),
+                    returnedValue = Minor.minorToMoney(returns.sumOf { r -> r.valueMinor }),
+                    refundedAmount = Minor.minorToMoney(returns.sumOf { r -> r.refundMinor })
+                )
+            }
+        }
+
+    override suspend fun saveReturn(input: ReturnInput): ReturnResult = db.withTransaction {
+        val sale = saleDao.getSale(input.invoiceId)
+        if (sale == null) {
+            ReturnResult.NotFound
+        } else if (input.lines.isEmpty()) {
+            ReturnResult.NothingSelected
+        } else if (input.lines.map { it.itemId }.toSet().size != input.lines.size) {
+            ReturnResult.InvalidQuantity
+        } else {
+            saveReturnValidated(sale, input)
+        }
+    }
+
+    private suspend fun saveReturnValidated(sale: SaleEntity, input: ReturnInput): ReturnResult {
+        val items = saleDao.getItems(sale.id).associateBy { it.id }
+        val returned = returnDao.getReturnedByItem(sale.id).associateBy { it.itemId }
+        val totals = returnDao.totalsForSale(sale.id)
+        val subtotal = Minor.minorToMoney(sale.subtotalMinor)
+        val discount = Minor.minorToMoney(sale.discountMinor)
+
+        val prepared = ArrayList<PreparedSaleReturnLine>()
+        var value = BigDecimal.ZERO
+        var cogs = BigDecimal.ZERO
+        for (line in input.lines) {
+            val item = items[line.itemId] ?: return ReturnResult.InvalidQuantity
+            if (line.quantity.signum() <= 0) return ReturnResult.InvalidQuantity
+            val sold = Minor.milliToQuantity(item.quantityMilli)
+            val prev = returned[item.id]
+            val prevQuantity = Minor.milliToQuantity(prev?.quantityMilli ?: 0L)
+            val prevValue = Minor.minorToMoney(prev?.valueMinor ?: 0L)
+            if (line.quantity > sold.subtract(prevQuantity)) return ReturnResult.InvalidQuantity
+
+            val net = ReturnCalculator.netLineValue(Minor.minorToMoney(item.lineTotalMinor), subtotal, discount)
+            val lineValue = ReturnCalculator.returnValue(net, sold, line.quantity, prevQuantity, prevValue)
+            value = value.add(lineValue)
+            cogs = cogs.add(WeightedAverage.costOfGoods(line.quantity, Minor.minorToMoney(item.unitCostMinor)))
+            prepared.add(PreparedSaleReturnLine(item, Minor.quantityToMilli(line.quantity), lineValue))
+        }
+
+        val refund = ReturnCalculator.refund(
+            total = Minor.minorToMoney(sale.totalMinor),
+            paid = Minor.minorToMoney(sale.paidMinor),
+            refundedBefore = Minor.minorToMoney(totals.refundMinor),
+            returnedBefore = Minor.minorToMoney(totals.valueMinor),
+            thisReturnValue = value
+        )
+
+        val now = System.currentTimeMillis()
+        val number = returnDao.maxNumber() + 1
+        val returnId = returnDao.insert(
+            SaleReturnEntity(
+                number = number,
+                saleId = sale.id,
+                createdAt = now,
+                valueMinor = Minor.moneyToMinor(value),
+                refundMinor = Minor.moneyToMinor(refund),
+                cogsMinor = Minor.moneyToMinor(cogs),
+                paymentMethod = input.method.name,
+                note = ""
+            )
+        )
+        for (p in prepared) {
+            returnDao.insertItem(
+                SaleReturnItemEntity(
+                    returnId = returnId,
+                    saleItemId = p.item.id,
+                    productId = p.item.productId,
+                    quantityMilli = p.quantityMilli,
+                    valueMinor = Minor.moneyToMinor(p.value)
+                )
+            )
+            val product = productDao.getEntity(p.item.productId) ?: continue
+            val newStock = product.stockMilli + p.quantityMilli
+            productDao.update(product.copy(stockMilli = newStock, updatedAt = now))
+            movementDao.insert(
+                StockMovementEntity(
+                    productId = product.id,
+                    type = StockMovementType.SALE_RETURN.name,
+                    quantityChangeMilli = p.quantityMilli,
+                    balanceAfterMilli = newStock,
+                    note = InvoiceNumbers.saleReturn(number),
+                    createdAt = now
+                )
+            )
+        }
+        return ReturnResult.Success(returnId, number, value, refund)
+    }
+
+    private class PreparedSaleReturnLine(val item: SaleItemEntity, val quantityMilli: Long, val value: BigDecimal)
 
     private companion object {
         const val HISTORY_LIMIT = 200

@@ -4,4 +4,6 @@ package com.burhannexus.dukaandost.core
 object InvoiceNumbers {
     fun sale(number: Long): String = "S-" + number.toString().padStart(6, '0')
     fun purchase(number: Long): String = "P-" + number.toString().padStart(6, '0')
+    fun saleReturn(number: Long): String = "SR-" + number.toString().padStart(6, '0')
+    fun purchaseReturn(number: Long): String = "PR-" + number.toString().padStart(6, '0')
 }

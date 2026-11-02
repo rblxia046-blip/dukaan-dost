@@ -23,10 +23,21 @@ data class InvoiceSummary(
     val createdAt: Long,
     val partyName: String?,
     val total: BigDecimal,
-    val paid: BigDecimal
+    val paid: BigDecimal,
+    val returned: BigDecimal = BigDecimal.ZERO,
+    val refunded: BigDecimal = BigDecimal.ZERO
 ) {
-    val remaining: BigDecimal get() = total.subtract(paid)
+    /** Still owed after returns: total - returned goods - (money paid - money handed back). */
+    val remaining: BigDecimal get() = total.subtract(returned).subtract(paid.subtract(refunded))
 }
+
+data class ReturnSummary(
+    val id: Long,
+    val number: Long,
+    val createdAt: Long,
+    val value: BigDecimal,
+    val refund: BigDecimal
+)
 
 data class InvoiceDetail(
     val id: Long,
@@ -41,9 +52,12 @@ data class InvoiceDetail(
     val total: BigDecimal,
     val paid: BigDecimal,
     val paymentMethod: PaymentMethod,
-    val note: String
+    val note: String,
+    val returns: List<ReturnSummary> = emptyList()
 ) {
-    val remaining: BigDecimal get() = total.subtract(paid)
+    val returnedValue: BigDecimal get() = returns.fold(BigDecimal.ZERO) { a, r -> a.add(r.value) }
+    val refundedAmount: BigDecimal get() = returns.fold(BigDecimal.ZERO) { a, r -> a.add(r.refund) }
+    val remaining: BigDecimal get() = total.subtract(returnedValue).subtract(paid.subtract(refundedAmount))
 }
 
 // ---- Purchases ----

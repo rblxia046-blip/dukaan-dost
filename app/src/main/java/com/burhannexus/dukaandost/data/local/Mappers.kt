@@ -43,7 +43,9 @@ fun InvoiceRow.toSummary(): com.burhannexus.dukaandost.domain.model.InvoiceSumma
         createdAt = createdAt,
         partyName = partyName,
         total = Minor.minorToMoney(totalMinor),
-        paid = Minor.minorToMoney(paidMinor)
+        paid = Minor.minorToMoney(paidMinor),
+        returned = Minor.minorToMoney(returnedMinor),
+        refunded = Minor.minorToMoney(refundedMinor)
     )
 
 fun paymentMethodOf(value: String): com.burhannexus.dukaandost.domain.model.PaymentMethod =

@@ -27,7 +27,9 @@ data class InvoiceRow(
     val createdAt: Long,
     val totalMinor: Long,
     val paidMinor: Long,
-    val partyName: String?
+    val partyName: String?,
+    val returnedMinor: Long,
+    val refundedMinor: Long
 )
 
 data class PurchaseWithSupplier(
@@ -43,4 +45,15 @@ data class PurchaseItemRow(
 data class SaleWithCustomer(
     @Embedded val sale: com.burhannexus.dukaandost.data.local.entity.SaleEntity,
     val partyName: String?
+)
+
+data class ReturnedItemRow(
+    val itemId: Long,
+    val quantityMilli: Long,
+    val valueMinor: Long
+)
+
+data class ReturnTotalsRow(
+    val valueMinor: Long,
+    val refundMinor: Long
 )

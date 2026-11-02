@@ -102,3 +102,46 @@ object WeightedAverage {
     /** Cost of goods sold for a quantity at the current average cost. */
     fun costOfGoods(quantity: BigDecimal, unitCost: BigDecimal): BigDecimal = quantity.multiply(unitCost).money()
 }
+
+/** Value and settlement rules for sales returns and purchase returns. */
+object ReturnCalculator {
+    /** Value of a whole sale line after its share of the invoice discount. */
+    fun netLineValue(lineTotal: BigDecimal, subtotal: BigDecimal, invoiceDiscount: BigDecimal): BigDecimal =
+        if (subtotal.signum() == 0) lineTotal.money()
+        else lineTotal.multiply(subtotal.subtract(invoiceDiscount)).divide(subtotal, 2, RoundingMode.HALF_UP)
+
+    /**
+     * Value of returning [returnQuantity]. Returning everything that is left takes the remaining
+     * value exactly, so repeated partial returns can never add up to more than the line was worth.
+     */
+    fun returnValue(
+        netLineValue: BigDecimal,
+        soldQuantity: BigDecimal,
+        returnQuantity: BigDecimal,
+        returnedQuantity: BigDecimal,
+        returnedValue: BigDecimal
+    ): BigDecimal {
+        val remaining = soldQuantity.subtract(returnedQuantity)
+        return if (returnQuantity.compareTo(remaining) == 0) {
+            netLineValue.subtract(returnedValue).money()
+        } else {
+            netLineValue.multiply(returnQuantity).divide(soldQuantity, 2, RoundingMode.HALF_UP)
+        }
+    }
+
+    /**
+     * Cash that has to change hands because of this return: money already paid beyond what is
+     * still owed after the return. A return first cancels unpaid balance, only the rest is refunded.
+     */
+    fun refund(
+        total: BigDecimal,
+        paid: BigDecimal,
+        refundedBefore: BigDecimal,
+        returnedBefore: BigDecimal,
+        thisReturnValue: BigDecimal
+    ): BigDecimal {
+        val netPaid = paid.subtract(refundedBefore)
+        val netTotal = total.subtract(returnedBefore).subtract(thisReturnValue)
+        return netPaid.subtract(netTotal).max(ZERO).money()
+    }
+}

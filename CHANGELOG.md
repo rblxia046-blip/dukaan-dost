@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.3.1 - Phase 3 (part 2): Returns
+- Database v3 with migration 2 -> 3 (sale_returns, sale_return_items, purchase_returns, purchase_return_items)
+- Sales return: stock goes back up, receivable falls first, only the overpayment is refunded in cash
+- Purchase return: stock goes down (blocked if the goods were already sold), payable falls first, excess refunded by the supplier
+- Return value includes the invoice-discount share; repeated partial returns never exceed the line value
+- Invoice screens show returns, net remaining balance and a "Return items" button
+- Dashboard sales, profit, receivables, payables and cash balance are net of returns and refunds
+- Stock history shows SR-/PR- return numbers
+
 ## 0.3.0 - Phase 3 (part 1): Purchases and Sales / POS
 - Database v2 with migration 1 -> 2 (suppliers, customers, purchases, sales and their items)
 - Purchases: multi-item invoice, item and invoice discount, extra expenses, cash/partial/credit, supplier quick-add

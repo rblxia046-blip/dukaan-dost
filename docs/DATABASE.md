@@ -1,4 +1,4 @@
-# Database (Room / SQLite) - schema version 2
+# Database (Room / SQLite) - schema version 3
 
 File: `dukaan_dost.db`, local to each installation. Foreign keys are enforced.
 
@@ -25,3 +25,8 @@ File: `dukaan_dost.db`, local to each installation. Foreign keys are enforced.
 
 Migration 1 -> 2 only creates tables; existing data is untouched.
 Invoices and items are never deleted (foreign keys use RESTRICT).
+
+## Version 3 tables (returns)
+sale_returns / sale_return_items and purchase_returns / purchase_return_items.
+A return stores its value, the cash refund and (sales) the cost of the returned goods.
+Migration 2 -> 3 only creates tables.

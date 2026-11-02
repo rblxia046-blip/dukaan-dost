@@ -18,5 +18,15 @@ Zero or negative existing stock counts as no value.
 - Cash balance = money received from sales - money paid for purchases (expenses and opening cash come later).
 - Revenue, cash received, credit given and credit taken are kept separate in the data.
 
+## Returns (Phase 3, part 2)
+- Sales return value = quantity share of the line after its share of the invoice discount.
+  Returning the last remaining quantity takes the exact remaining value, so rounding never adds up to more than the line.
+- Stock goes back up; COGS of the returned goods is reversed at the ORIGINAL cost snapshot, so profit reverses correctly.
+- Settlement: the return first cancels unpaid balance. Only money paid beyond what is still owed is refunded in cash
+  (`refund = max(0, (paid - refunded so far) - (total - returned so far - this return))`).
+- Purchase return value = share of the line's landed cost. Stock goes down (not allowed if already sold).
+  The product's average cost is left unchanged.
+- Dashboard: sales and profit are net of returns; receivable = sum(total - paid) - returns + refunds; same for payables.
+
 ## Not yet included
-Sales returns, purchase returns, customer/supplier payments after the invoice, expenses.
+Customer/supplier payments after the invoice (Phase 4), expenses, opening balances in the dashboard.

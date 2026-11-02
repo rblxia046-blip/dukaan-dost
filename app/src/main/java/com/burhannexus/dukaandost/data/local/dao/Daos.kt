@@ -125,9 +125,17 @@ interface PurchaseDao {
     @Query("SELECT COALESCE(MAX(number), 0) FROM purchases")
     suspend fun maxNumber(): Long
 
+    @Query("SELECT * FROM purchases WHERE id = :id")
+    suspend fun getPurchase(id: Long): com.burhannexus.dukaandost.data.local.entity.PurchaseEntity?
+
+    @Query("SELECT i.*, pr.name AS productName FROM purchase_items i JOIN products pr ON pr.id = i.productId WHERE i.purchaseId = :id ORDER BY i.id")
+    suspend fun getItems(id: Long): List<com.burhannexus.dukaandost.data.local.PurchaseItemRow>
+
     @Query(
         """SELECT p.id AS id, p.number AS number, p.createdAt AS createdAt, p.totalMinor AS totalMinor,
-           p.paidMinor AS paidMinor, s.name AS partyName
+           p.paidMinor AS paidMinor, s.name AS partyName,
+           COALESCE((SELECT SUM(r.valueMinor) FROM purchase_returns r WHERE r.purchaseId = p.id), 0) AS returnedMinor,
+           COALESCE((SELECT SUM(r.refundMinor) FROM purchase_returns r WHERE r.purchaseId = p.id), 0) AS refundedMinor
            FROM purchases p LEFT JOIN suppliers s ON s.id = p.supplierId
            ORDER BY p.createdAt DESC, p.id DESC LIMIT :limit"""
     )
@@ -163,12 +171,20 @@ interface SaleDao {
     @Query("SELECT COALESCE(MAX(number), 0) FROM sales")
     suspend fun maxNumber(): Long
 
+    @Query("SELECT * FROM sales WHERE id = :id")
+    suspend fun getSale(id: Long): com.burhannexus.dukaandost.data.local.entity.SaleEntity?
+
+    @Query("SELECT * FROM sale_items WHERE saleId = :id ORDER BY id")
+    suspend fun getItems(id: Long): List<com.burhannexus.dukaandost.data.local.entity.SaleItemEntity>
+
     @Query("SELECT * FROM sales WHERE clientToken = :token LIMIT 1")
     suspend fun findByToken(token: String): com.burhannexus.dukaandost.data.local.entity.SaleEntity?
 
     @Query(
         """SELECT s.id AS id, s.number AS number, s.createdAt AS createdAt, s.totalMinor AS totalMinor,
-           s.paidMinor AS paidMinor, c.name AS partyName
+           s.paidMinor AS paidMinor, c.name AS partyName,
+           COALESCE((SELECT SUM(r.valueMinor) FROM sale_returns r WHERE r.saleId = s.id), 0) AS returnedMinor,
+           COALESCE((SELECT SUM(r.refundMinor) FROM sale_returns r WHERE r.saleId = s.id), 0) AS refundedMinor
            FROM sales s LEFT JOIN customers c ON c.id = s.customerId
            ORDER BY s.createdAt DESC, s.id DESC LIMIT :limit"""
     )

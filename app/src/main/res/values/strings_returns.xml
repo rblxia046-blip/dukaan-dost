@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="invoice_return_items">Return items</string>
+    <string name="invoice_returns_title">Returns</string>
+    <string name="invoice_returned">Returned goods</string>
+    <string name="invoice_refunded">Cash handed back</string>
+    <string name="invoice_refund_short">Refund %1$s</string>
+
+    <string name="return_title">Return from %1$s</string>
+    <string name="return_hint_sale">Enter the quantity the customer is giving back. Stock goes up again.</string>
+    <string name="return_hint_purchase">Enter the quantity you are sending back to the supplier. Stock goes down.</string>
+    <string name="return_line_info">Bought %1$s | Already returned %2$s | Can return %3$s</string>
+    <string name="return_quantity">Return quantity</string>
+    <string name="return_value">Return value: %1$s</string>
+    <string name="return_all_done">Everything on this line has been returned.</string>
+    <string name="return_total_value">Total return value</string>
+    <string name="return_refund_sale">Cash to give back to the customer</string>
+    <string name="return_refund_purchase">Cash to receive from the supplier</string>
+    <string name="return_refund_explain">Unpaid balance is reduced first. Only money already paid beyond what is still owed is refunded.</string>
+    <string name="return_save">Save return</string>
+    <string name="return_done_title">Return saved</string>
+    <string name="return_done_body">%1$s saved. Value %2$s, cash refund %3$s. Stock was updated.</string>
+    <string name="return_err_nothing">Enter a quantity for at least one item.</string>
+    <string name="return_err_quantity">Check the quantities: they cannot be more than what is left to return.</string>
+    <string name="return_err_not_found">This invoice no longer exists.</string>
+    <string name="return_err_stock">Not enough stock of %1$s to send back. Some of it was already sold.</string>
+</resources>

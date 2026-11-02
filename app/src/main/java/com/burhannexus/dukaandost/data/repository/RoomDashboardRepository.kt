@@ -3,7 +3,9 @@ package com.burhannexus.dukaandost.data.repository
 import com.burhannexus.dukaandost.core.Minor
 import com.burhannexus.dukaandost.data.local.dao.ProductDao
 import com.burhannexus.dukaandost.data.local.dao.PurchaseDao
+import com.burhannexus.dukaandost.data.local.dao.PurchaseReturnDao
 import com.burhannexus.dukaandost.data.local.dao.SaleDao
+import com.burhannexus.dukaandost.data.local.dao.SaleReturnDao
 import com.burhannexus.dukaandost.data.local.toSummary
 import com.burhannexus.dukaandost.domain.model.DashboardSummary
 import com.burhannexus.dukaandost.domain.model.DateRange
@@ -19,13 +21,17 @@ import javax.inject.Singleton
  *  - Sales and Profit: for the selected date range. Profit = sales (after discounts) - cost of goods sold.
  *    Expenses are not recorded yet (a later phase), so Expenses is 0 and Profit is gross profit.
  *  - Receivables, payables, cash balance and stock: current totals (not date-filtered).
- *  - Cash balance = money received from sales - money paid for purchases (expenses/opening cash come later).
+ *  - Sales and Profit are net of sales returns. Receivables/payables are net of returns and refunds.
+ *  - Cash balance = received from sales - refunded to customers - paid for purchases + refunds from suppliers
+ *    (expenses and opening cash come later).
  */
 @Singleton
 class RoomDashboardRepository @Inject constructor(
     private val productDao: ProductDao,
     private val saleDao: SaleDao,
-    private val purchaseDao: PurchaseDao
+    private val purchaseDao: PurchaseDao,
+    private val saleReturnDao: SaleReturnDao,
+    private val purchaseReturnDao: PurchaseReturnDao
 ) : DashboardRepository {
 
     override fun observeSummary(range: DateRange): Flow<DashboardSummary> {
@@ -35,12 +41,18 @@ class RoomDashboardRepository @Inject constructor(
 
         val money = combine(
             listOf(
-                saleDao.observeSalesTotal(start, end),
-                saleDao.observeProfit(start, end),
-                saleDao.observeReceivable(),
-                purchaseDao.observePayable(),
-                saleDao.observePaidTotal(),
-                purchaseDao.observePaidTotal()
+                saleDao.observeSalesTotal(start, end),            // 0
+                saleReturnDao.observeValue(start, end),           // 1
+                saleDao.observeProfit(start, end),                // 2
+                saleReturnDao.observeProfitImpact(start, end),    // 3
+                saleDao.observeReceivable(),                      // 4
+                saleReturnDao.observeValueAll(),                  // 5
+                saleReturnDao.observeRefundAll(),                 // 6
+                purchaseDao.observePayable(),                     // 7
+                purchaseReturnDao.observeValueAll(),              // 8
+                purchaseReturnDao.observeRefundAll(),             // 9
+                saleDao.observePaidTotal(),                       // 10
+                purchaseDao.observePaidTotal()                    // 11
             )
         ) { it }
 
@@ -51,15 +63,15 @@ class RoomDashboardRepository @Inject constructor(
             purchaseDao.observeRecent(RECENT)
         ) { stats, m, recentSales, recentPurchases ->
             DashboardSummary.EMPTY.copy(
-                sales = Minor.minorToMoney(m[0]),
-                profit = Minor.minorToMoney(m[1]),
+                sales = Minor.minorToMoney(m[0] - m[1]),
+                profit = Minor.minorToMoney(m[2] - m[3]),
                 totalProducts = stats.totalProducts,
                 totalStockQuantity = Minor.milliToQuantity(stats.totalStockMilli),
                 lowStockProducts = stats.lowStock,
                 outOfStockProducts = stats.outOfStock,
-                customerReceivables = Minor.minorToMoney(m[2]),
-                supplierPayables = Minor.minorToMoney(m[3]),
-                cashBalance = Minor.minorToMoney(m[4] - m[5]),
+                customerReceivables = Minor.minorToMoney(m[4] - m[5] + m[6]),
+                supplierPayables = Minor.minorToMoney(m[7] - m[8] + m[9]),
+                cashBalance = Minor.minorToMoney(m[10] - m[6] - m[11] + m[9]),
                 recentSales = recentSales.map { it.toSummary() },
                 recentPurchases = recentPurchases.map { it.toSummary() }
             )
