@@ -32,4 +32,16 @@ class InvoiceTextFormatterTest {
         assertTrue(text.contains("Rs. 300.00"))
         assertTrue(text.contains("Remaining: Rs. 200.00"))
     }
+
+    @Test fun businessHeaderReplacesDefaultName() {
+        val invoice = InvoiceDetail(
+            id = 1, kind = InvoiceKind.SALE, number = 1, createdAt = 0L, partyName = null,
+            lines = emptyList(), subtotal = BigDecimal.ZERO, invoiceDiscount = BigDecimal.ZERO,
+            extraExpenses = BigDecimal.ZERO, total = BigDecimal.ZERO, paid = BigDecimal.ZERO,
+            paymentMethod = PaymentMethod.CASH, note = ""
+        )
+        val text = InvoiceTextFormatter.format(invoice, "Sales invoice", "Customer", listOf("*Ali Store*", "Phone: 0347"))
+        assertTrue(text.startsWith("*Ali Store*"))
+        assertTrue(text.contains("Phone: 0347"))
+    }
 }

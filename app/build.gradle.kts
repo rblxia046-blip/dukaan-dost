@@ -13,8 +13,8 @@ android {
         applicationId = "com.burhannexus.dukaandost"
         minSdk = 26
         targetSdk = 34
-        versionCode = 4
-        versionName = "0.3.1"
+        versionCode = 5
+        versionName = "0.3.2"
     }
 
     buildTypes {
@@ -70,6 +70,8 @@ dependencies {
     implementation(libs.hilt.android)
     kapt(libs.hilt.compiler)
     implementation(libs.hilt.navigation.compose)
+
+    implementation(libs.androidx.datastore.preferences)
 
     implementation(libs.room.runtime)
     implementation(libs.room.ktx)

@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="biz_welcome_title">Set up your shop</string>
+    <string name="biz_welcome_body">These details are printed on every receipt. You can change them later in Settings.</string>
+    <string name="biz_title">Shop details</string>
+    <string name="biz_shop_name">Shop name</string>
+    <string name="biz_phone">Mobile number</string>
+    <string name="biz_address">Address (optional)</string>
+    <string name="biz_owner">Owner name (optional)</string>
+    <string name="biz_footer_note">Message at the bottom of the receipt (optional)</string>
+    <string name="biz_logo">Shop logo</string>
+    <string name="biz_logo_none">No logo</string>
+    <string name="biz_logo_choose">Choose logo</string>
+    <string name="biz_logo_change">Change logo</string>
+    <string name="biz_logo_remove">Remove logo</string>
+    <string name="biz_logo_hint">The logo is optional. It is saved on this phone and printed at the top of receipts.</string>
+    <string name="biz_logo_failed">Could not read that image. Please choose another one.</string>
+    <string name="biz_save_failed">Could not save the shop details. Please try again.</string>
+    <string name="biz_err_phone">Enter a valid mobile number (digits, +, - and spaces only).</string>
+    <string name="biz_start">Save and start</string>
+    <string name="biz_edit">Edit shop details</string>
+
+    <string name="receipt_phone">Phone</string>
+    <string name="receipt_item">Item</string>
+    <string name="receipt_qty">Qty</string>
+    <string name="receipt_price">Price</string>
+    <string name="receipt_amount">Amount</string>
+    <string name="receipt_share_pdf">Share PDF</string>
+    <string name="receipt_print">Print</string>
+    <string name="receipt_share_text">Share as text</string>
+    <string name="receipt_failed">Could not create the receipt. Please try again.</string>
+</resources>
