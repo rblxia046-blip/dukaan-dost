@@ -150,3 +150,49 @@ data class SaleItemEntity(
     val discountMinor: Long,
     val lineTotalMinor: Long
 )
+
+/** Money received from a customer on account (not tied to one invoice). */
+@Entity(
+    tableName = "customer_payments",
+    foreignKeys = [
+        ForeignKey(
+            entity = CustomerEntity::class,
+            parentColumns = ["id"],
+            childColumns = ["customerId"],
+            onDelete = ForeignKey.RESTRICT
+        )
+    ],
+    indices = [Index("customerId"), Index(value = ["number"], unique = true)]
+)
+data class CustomerPaymentEntity(
+    @PrimaryKey(autoGenerate = true) val id: Long = 0,
+    val number: Long,
+    val customerId: Long,
+    val amountMinor: Long,
+    val paymentMethod: String,
+    val note: String,
+    val createdAt: Long
+)
+
+/** Money paid to a supplier on account (not tied to one invoice). */
+@Entity(
+    tableName = "supplier_payments",
+    foreignKeys = [
+        ForeignKey(
+            entity = SupplierEntity::class,
+            parentColumns = ["id"],
+            childColumns = ["supplierId"],
+            onDelete = ForeignKey.RESTRICT
+        )
+    ],
+    indices = [Index("supplierId"), Index(value = ["number"], unique = true)]
+)
+data class SupplierPaymentEntity(
+    @PrimaryKey(autoGenerate = true) val id: Long = 0,
+    val number: Long,
+    val supplierId: Long,
+    val amountMinor: Long,
+    val paymentMethod: String,
+    val note: String,
+    val createdAt: Long
+)

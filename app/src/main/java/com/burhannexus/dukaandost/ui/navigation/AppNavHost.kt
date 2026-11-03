@@ -14,6 +14,12 @@ import com.burhannexus.dukaandost.ui.dashboard.DashboardScreen
 import com.burhannexus.dukaandost.ui.products.ProductDetailScreen
 import com.burhannexus.dukaandost.ui.products.ProductEditScreen
 import com.burhannexus.dukaandost.ui.products.ProductsScreen
+import com.burhannexus.dukaandost.domain.model.InvoiceKind
+import com.burhannexus.dukaandost.domain.model.PartyKind
+import com.burhannexus.dukaandost.ui.parties.LedgerHomeScreen
+import com.burhannexus.dukaandost.ui.parties.LedgerScreen
+import com.burhannexus.dukaandost.ui.parties.PartiesScreen
+import com.burhannexus.dukaandost.ui.returns.ReturnsScreen
 import com.burhannexus.dukaandost.ui.settings.SettingsScreen
 import com.burhannexus.dukaandost.ui.trade.PosScreen
 import com.burhannexus.dukaandost.ui.trade.PurchaseEditorScreen
@@ -36,8 +42,15 @@ fun AppNavHost(
         AppDestination.Products,
         AppDestination.Purchases,
         AppDestination.Sales,
+        AppDestination.Returns,
+        AppDestination.Customers,
+        AppDestination.Suppliers,
+        AppDestination.Ledger,
         AppDestination.Settings
     )
+    val openLedger: (PartyKind, Long) -> Unit = { kind, id ->
+        navController.navigate(TradeRoutes.ledgerDetail(kind == PartyKind.CUSTOMER, id))
+    }
 
     NavHost(
         navController = navController,
@@ -110,6 +123,39 @@ fun AppNavHost(
             )
         }
 
+        composable(AppDestination.Returns.route) {
+            ReturnsScreen(
+                contentPadding = contentPadding,
+                onNewReturn = { kind, id ->
+                    navController.navigate(
+                        if (kind == InvoiceKind.SALE) TradeRoutes.saleReturn(id) else TradeRoutes.purchaseReturn(id)
+                    )
+                },
+                onOpenInvoice = { kind, id ->
+                    navController.navigate(
+                        if (kind == InvoiceKind.SALE) TradeRoutes.saleDetail(id) else TradeRoutes.purchaseDetail(id)
+                    )
+                }
+            )
+        }
+        composable(AppDestination.Customers.route) {
+            PartiesScreen(PartyKind.CUSTOMER, contentPadding, openLedger)
+        }
+        composable(AppDestination.Suppliers.route) {
+            PartiesScreen(PartyKind.SUPPLIER, contentPadding, openLedger)
+        }
+        composable(AppDestination.Ledger.route) {
+            LedgerHomeScreen(contentPadding, openLedger)
+        }
+        composable(
+            TradeRoutes.LEDGER_DETAIL,
+            arguments = listOf(
+                navArgument("kind") { type = NavType.StringType },
+                navArgument("partyId") { type = NavType.LongType }
+            )
+        ) {
+            LedgerScreen(contentPadding = contentPadding, onBack = { navController.popBackStack() })
+        }
         composable(
             TradeRoutes.RETURN,
             arguments = listOf(

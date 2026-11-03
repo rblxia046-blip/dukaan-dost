@@ -57,3 +57,23 @@ data class ReturnTotalsRow(
     val valueMinor: Long,
     val refundMinor: Long
 )
+
+data class PartyAccountRow(
+    val id: Long,
+    val name: String,
+    val phone: String?,
+    val address: String?,
+    val openingBalanceMinor: Long,
+    val balanceMinor: Long
+)
+
+data class ReturnListRow(
+    val id: Long,
+    val number: Long,
+    val createdAt: Long,
+    val valueMinor: Long,
+    val refundMinor: Long,
+    val invoiceId: Long,
+    val invoiceNumber: Long,
+    val partyName: String?
+)

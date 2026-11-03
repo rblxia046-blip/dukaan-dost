@@ -1,11 +1,15 @@
 package com.burhannexus.dukaandost.data.repository
 
 import com.burhannexus.dukaandost.core.Minor
+import com.burhannexus.dukaandost.data.local.dao.CustomerDao
+import com.burhannexus.dukaandost.data.local.dao.CustomerPaymentDao
 import com.burhannexus.dukaandost.data.local.dao.ProductDao
 import com.burhannexus.dukaandost.data.local.dao.PurchaseDao
 import com.burhannexus.dukaandost.data.local.dao.PurchaseReturnDao
 import com.burhannexus.dukaandost.data.local.dao.SaleDao
 import com.burhannexus.dukaandost.data.local.dao.SaleReturnDao
+import com.burhannexus.dukaandost.data.local.dao.SupplierDao
+import com.burhannexus.dukaandost.data.local.dao.SupplierPaymentDao
 import com.burhannexus.dukaandost.data.local.toSummary
 import com.burhannexus.dukaandost.domain.model.DashboardSummary
 import com.burhannexus.dukaandost.domain.model.DateRange
@@ -23,7 +27,8 @@ import javax.inject.Singleton
  *  - Receivables, payables, cash balance and stock: current totals (not date-filtered).
  *  - Sales and Profit are net of sales returns. Receivables/payables are net of returns and refunds.
  *  - Cash balance = received from sales - refunded to customers - paid for purchases + refunds from suppliers
- *    (expenses and opening cash come later).
+ *    + payments received from customers - payments made to suppliers (expenses and opening cash come later).
+ *  - Receivables and payables also include opening balances and are reduced by payments on account.
  */
 @Singleton
 class RoomDashboardRepository @Inject constructor(
@@ -31,7 +36,11 @@ class RoomDashboardRepository @Inject constructor(
     private val saleDao: SaleDao,
     private val purchaseDao: PurchaseDao,
     private val saleReturnDao: SaleReturnDao,
-    private val purchaseReturnDao: PurchaseReturnDao
+    private val purchaseReturnDao: PurchaseReturnDao,
+    private val customerDao: CustomerDao,
+    private val supplierDao: SupplierDao,
+    private val customerPaymentDao: CustomerPaymentDao,
+    private val supplierPaymentDao: SupplierPaymentDao
 ) : DashboardRepository {
 
     override fun observeSummary(range: DateRange): Flow<DashboardSummary> {
@@ -52,7 +61,11 @@ class RoomDashboardRepository @Inject constructor(
                 purchaseReturnDao.observeValueAll(),              // 8
                 purchaseReturnDao.observeRefundAll(),             // 9
                 saleDao.observePaidTotal(),                       // 10
-                purchaseDao.observePaidTotal()                    // 11
+                purchaseDao.observePaidTotal(),                   // 11
+                customerDao.observeOpeningTotal(),                // 12
+                supplierDao.observeOpeningTotal(),                // 13
+                customerPaymentDao.observeTotal(),                // 14
+                supplierPaymentDao.observeTotal()                 // 15
             )
         ) { it }
 
@@ -69,9 +82,9 @@ class RoomDashboardRepository @Inject constructor(
                 totalStockQuantity = Minor.milliToQuantity(stats.totalStockMilli),
                 lowStockProducts = stats.lowStock,
                 outOfStockProducts = stats.outOfStock,
-                customerReceivables = Minor.minorToMoney(m[4] - m[5] + m[6]),
-                supplierPayables = Minor.minorToMoney(m[7] - m[8] + m[9]),
-                cashBalance = Minor.minorToMoney(m[10] - m[6] - m[11] + m[9]),
+                customerReceivables = Minor.minorToMoney(m[4] - m[5] + m[6] + m[12] - m[14]),
+                supplierPayables = Minor.minorToMoney(m[7] - m[8] + m[9] + m[13] - m[15]),
+                cashBalance = Minor.minorToMoney(m[10] - m[6] - m[11] + m[9] + m[14] - m[15]),
                 recentSales = recentSales.map { it.toSummary() },
                 recentPurchases = recentPurchases.map { it.toSummary() }
             )

@@ -120,3 +120,26 @@ val MIGRATION_2_3: Migration = object : Migration(2, 3) {
         db.execSQL("CREATE INDEX IF NOT EXISTS `index_purchase_return_items_productId` ON `purchase_return_items` (`productId`)")
     }
 }
+
+/** v3 -> v4 (Phase 4): customer and supplier payments. Existing data is untouched. */
+val MIGRATION_3_4: Migration = object : Migration(3, 4) {
+    override fun migrate(db: SupportSQLiteDatabase) {
+        db.execSQL(
+            "CREATE TABLE IF NOT EXISTS `customer_payments` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, " +
+                "`number` INTEGER NOT NULL, `customerId` INTEGER NOT NULL, `amountMinor` INTEGER NOT NULL, " +
+                "`paymentMethod` TEXT NOT NULL, `note` TEXT NOT NULL, `createdAt` INTEGER NOT NULL, " +
+                "FOREIGN KEY(`customerId`) REFERENCES `customers`(`id`) ON UPDATE NO ACTION ON DELETE RESTRICT )"
+        )
+        db.execSQL("CREATE INDEX IF NOT EXISTS `index_customer_payments_customerId` ON `customer_payments` (`customerId`)")
+        db.execSQL("CREATE UNIQUE INDEX IF NOT EXISTS `index_customer_payments_number` ON `customer_payments` (`number`)")
+
+        db.execSQL(
+            "CREATE TABLE IF NOT EXISTS `supplier_payments` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, " +
+                "`number` INTEGER NOT NULL, `supplierId` INTEGER NOT NULL, `amountMinor` INTEGER NOT NULL, " +
+                "`paymentMethod` TEXT NOT NULL, `note` TEXT NOT NULL, `createdAt` INTEGER NOT NULL, " +
+                "FOREIGN KEY(`supplierId`) REFERENCES `suppliers`(`id`) ON UPDATE NO ACTION ON DELETE RESTRICT )"
+        )
+        db.execSQL("CREATE INDEX IF NOT EXISTS `index_supplier_payments_supplierId` ON `supplier_payments` (`supplierId`)")
+        db.execSQL("CREATE UNIQUE INDEX IF NOT EXISTS `index_supplier_payments_number` ON `supplier_payments` (`number`)")
+    }
+}

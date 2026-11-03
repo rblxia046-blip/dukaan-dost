@@ -103,6 +103,42 @@ interface SupplierDao {
 
     @Insert
     suspend fun insert(entity: com.burhannexus.dukaandost.data.local.entity.SupplierEntity): Long
+
+    @androidx.room.Update
+    suspend fun update(entity: com.burhannexus.dukaandost.data.local.entity.SupplierEntity)
+
+    @Query("SELECT * FROM suppliers WHERE id = :id")
+    suspend fun getById(id: Long): com.burhannexus.dukaandost.data.local.entity.SupplierEntity?
+
+    @Query("SELECT (SELECT COUNT(*) FROM purchases WHERE supplierId = :id) + (SELECT COUNT(*) FROM supplier_payments WHERE supplierId = :id)")
+    suspend fun transactionCount(id: Long): Int
+
+    @Query(
+        """SELECT c.id AS id, c.name AS name, c.phone AS phone, c.address AS address,
+           c.openingBalanceMinor AS openingBalanceMinor,
+           c.openingBalanceMinor
+           + COALESCE((SELECT SUM(s.totalMinor - s.paidMinor) FROM purchases s WHERE s.supplierId = c.id), 0)
+           - COALESCE((SELECT SUM(r.valueMinor - r.refundMinor) FROM purchase_returns r JOIN purchases s2 ON s2.id = r.purchaseId WHERE s2.supplierId = c.id), 0)
+           - COALESCE((SELECT SUM(p.amountMinor) FROM supplier_payments p WHERE p.supplierId = c.id), 0) AS balanceMinor
+           FROM suppliers c
+           WHERE c.isActive = 1 ORDER BY c.name COLLATE NOCASE"""
+    )
+    fun observeAccounts(): Flow<List<com.burhannexus.dukaandost.data.local.PartyAccountRow>>
+
+    @Query(
+        """SELECT c.id AS id, c.name AS name, c.phone AS phone, c.address AS address,
+           c.openingBalanceMinor AS openingBalanceMinor,
+           c.openingBalanceMinor
+           + COALESCE((SELECT SUM(s.totalMinor - s.paidMinor) FROM purchases s WHERE s.supplierId = c.id), 0)
+           - COALESCE((SELECT SUM(r.valueMinor - r.refundMinor) FROM purchase_returns r JOIN purchases s2 ON s2.id = r.purchaseId WHERE s2.supplierId = c.id), 0)
+           - COALESCE((SELECT SUM(p.amountMinor) FROM supplier_payments p WHERE p.supplierId = c.id), 0) AS balanceMinor
+           FROM suppliers c
+           WHERE c.id = :id AND c.isActive = 1"""
+    )
+    fun observeAccount(id: Long): Flow<com.burhannexus.dukaandost.data.local.PartyAccountRow?>
+
+    @Query("SELECT COALESCE(SUM(openingBalanceMinor), 0) FROM suppliers WHERE isActive = 1")
+    fun observeOpeningTotal(): Flow<Long>
 }
 
 @Dao
@@ -112,6 +148,42 @@ interface CustomerDao {
 
     @Insert
     suspend fun insert(entity: com.burhannexus.dukaandost.data.local.entity.CustomerEntity): Long
+
+    @androidx.room.Update
+    suspend fun update(entity: com.burhannexus.dukaandost.data.local.entity.CustomerEntity)
+
+    @Query("SELECT * FROM customers WHERE id = :id")
+    suspend fun getById(id: Long): com.burhannexus.dukaandost.data.local.entity.CustomerEntity?
+
+    @Query("SELECT (SELECT COUNT(*) FROM sales WHERE customerId = :id) + (SELECT COUNT(*) FROM customer_payments WHERE customerId = :id)")
+    suspend fun transactionCount(id: Long): Int
+
+    @Query(
+        """SELECT c.id AS id, c.name AS name, c.phone AS phone, c.address AS address,
+           c.openingBalanceMinor AS openingBalanceMinor,
+           c.openingBalanceMinor
+           + COALESCE((SELECT SUM(s.totalMinor - s.paidMinor) FROM sales s WHERE s.customerId = c.id), 0)
+           - COALESCE((SELECT SUM(r.valueMinor - r.refundMinor) FROM sale_returns r JOIN sales s2 ON s2.id = r.saleId WHERE s2.customerId = c.id), 0)
+           - COALESCE((SELECT SUM(p.amountMinor) FROM customer_payments p WHERE p.customerId = c.id), 0) AS balanceMinor
+           FROM customers c
+           WHERE c.isActive = 1 ORDER BY c.name COLLATE NOCASE"""
+    )
+    fun observeAccounts(): Flow<List<com.burhannexus.dukaandost.data.local.PartyAccountRow>>
+
+    @Query(
+        """SELECT c.id AS id, c.name AS name, c.phone AS phone, c.address AS address,
+           c.openingBalanceMinor AS openingBalanceMinor,
+           c.openingBalanceMinor
+           + COALESCE((SELECT SUM(s.totalMinor - s.paidMinor) FROM sales s WHERE s.customerId = c.id), 0)
+           - COALESCE((SELECT SUM(r.valueMinor - r.refundMinor) FROM sale_returns r JOIN sales s2 ON s2.id = r.saleId WHERE s2.customerId = c.id), 0)
+           - COALESCE((SELECT SUM(p.amountMinor) FROM customer_payments p WHERE p.customerId = c.id), 0) AS balanceMinor
+           FROM customers c
+           WHERE c.id = :id AND c.isActive = 1"""
+    )
+    fun observeAccount(id: Long): Flow<com.burhannexus.dukaandost.data.local.PartyAccountRow?>
+
+    @Query("SELECT COALESCE(SUM(openingBalanceMinor), 0) FROM customers WHERE isActive = 1")
+    fun observeOpeningTotal(): Flow<Long>
 }
 
 @Dao
@@ -124,6 +196,9 @@ interface PurchaseDao {
 
     @Query("SELECT COALESCE(MAX(number), 0) FROM purchases")
     suspend fun maxNumber(): Long
+
+    @Query("SELECT * FROM purchases WHERE supplierId = :supplierId ORDER BY createdAt, id")
+    fun observeForSupplier(supplierId: Long): Flow<List<com.burhannexus.dukaandost.data.local.entity.PurchaseEntity>>
 
     @Query("SELECT * FROM purchases WHERE id = :id")
     suspend fun getPurchase(id: Long): com.burhannexus.dukaandost.data.local.entity.PurchaseEntity?
@@ -171,6 +246,9 @@ interface SaleDao {
     @Query("SELECT COALESCE(MAX(number), 0) FROM sales")
     suspend fun maxNumber(): Long
 
+    @Query("SELECT * FROM sales WHERE customerId = :customerId ORDER BY createdAt, id")
+    fun observeForCustomer(customerId: Long): Flow<List<com.burhannexus.dukaandost.data.local.entity.SaleEntity>>
+
     @Query("SELECT * FROM sales WHERE id = :id")
     suspend fun getSale(id: Long): com.burhannexus.dukaandost.data.local.entity.SaleEntity?
 
@@ -211,4 +289,34 @@ interface SaleDao {
 
     @Query("SELECT COALESCE(SUM(paidMinor), 0) FROM sales")
     fun observePaidTotal(): Flow<Long>
+}
+
+@Dao
+interface CustomerPaymentDao {
+    @Insert
+    suspend fun insert(entity: com.burhannexus.dukaandost.data.local.entity.CustomerPaymentEntity): Long
+
+    @Query("SELECT COALESCE(MAX(number), 0) FROM customer_payments")
+    suspend fun maxNumber(): Long
+
+    @Query("SELECT * FROM customer_payments WHERE customerId = :customerId ORDER BY createdAt, id")
+    fun observeForCustomer(customerId: Long): Flow<List<com.burhannexus.dukaandost.data.local.entity.CustomerPaymentEntity>>
+
+    @Query("SELECT COALESCE(SUM(amountMinor), 0) FROM customer_payments")
+    fun observeTotal(): Flow<Long>
+}
+
+@Dao
+interface SupplierPaymentDao {
+    @Insert
+    suspend fun insert(entity: com.burhannexus.dukaandost.data.local.entity.SupplierPaymentEntity): Long
+
+    @Query("SELECT COALESCE(MAX(number), 0) FROM supplier_payments")
+    suspend fun maxNumber(): Long
+
+    @Query("SELECT * FROM supplier_payments WHERE supplierId = :supplierId ORDER BY createdAt, id")
+    fun observeForSupplier(supplierId: Long): Flow<List<com.burhannexus.dukaandost.data.local.entity.SupplierPaymentEntity>>
+
+    @Query("SELECT COALESCE(SUM(amountMinor), 0) FROM supplier_payments")
+    fun observeTotal(): Flow<Long>
 }

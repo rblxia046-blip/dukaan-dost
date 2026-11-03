@@ -11,11 +11,18 @@ import javax.inject.Singleton
 @Singleton
 class ReceiptService @Inject constructor(
     private val profiles: BusinessProfileRepository,
-    private val generator: InvoicePdfGenerator
+    private val generator: InvoicePdfGenerator,
+    private val statements: StatementPdfGenerator
 ) {
     suspend fun createPdf(invoice: InvoiceDetail, labels: PdfLabels): File {
         val profile = profiles.profile.first()
         val logo = if (profile?.hasLogo == true) profiles.loadLogoPng() else null
         return generator.generate(invoice, profile, logo, labels)
+    }
+
+    suspend fun createStatementPdf(rows: List<StatementRow>, labels: StatementLabels): File {
+        val profile = profiles.profile.first()
+        val logo = if (profile?.hasLogo == true) profiles.loadLogoPng() else null
+        return statements.generate(rows, profile, logo, labels)
     }
 }

@@ -27,6 +27,7 @@ import com.burhannexus.dukaandost.domain.model.InvoiceLine
 import com.burhannexus.dukaandost.domain.model.InvoiceSummary
 import com.burhannexus.dukaandost.domain.model.ReturnInput
 import com.burhannexus.dukaandost.domain.model.ReturnResult
+import com.burhannexus.dukaandost.domain.model.ReturnListItem
 import com.burhannexus.dukaandost.domain.model.ReturnSummary
 import com.burhannexus.dukaandost.domain.model.ReturnableInvoice
 import com.burhannexus.dukaandost.domain.model.ReturnableLine
@@ -312,7 +313,24 @@ class SalesRepositoryImpl @Inject constructor(
 
     private class PreparedSaleReturnLine(val item: SaleItemEntity, val quantityMilli: Long, val value: BigDecimal)
 
+    override fun observeReturns(): Flow<List<ReturnListItem>> =
+        returnDao.observeAll(RETURN_LIST_LIMIT).map { rows ->
+            rows.map { row ->
+                ReturnListItem(
+                    id = row.id,
+                    number = row.number,
+                    createdAt = row.createdAt,
+                    invoiceId = row.invoiceId,
+                    invoiceNumber = row.invoiceNumber,
+                    partyName = row.partyName,
+                    value = Minor.minorToMoney(row.valueMinor),
+                    refund = Minor.minorToMoney(row.refundMinor)
+                )
+            }
+        }
+
     private companion object {
         const val HISTORY_LIMIT = 200
+        const val RETURN_LIST_LIMIT = 200
     }
 }

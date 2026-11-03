@@ -5,6 +5,8 @@ import androidx.room.Room
 import com.burhannexus.dukaandost.data.local.AppDatabase
 import com.burhannexus.dukaandost.data.local.dao.CategoryDao
 import com.burhannexus.dukaandost.data.local.dao.CustomerDao
+import com.burhannexus.dukaandost.data.local.dao.CustomerPaymentDao
+import com.burhannexus.dukaandost.data.local.dao.SupplierPaymentDao
 import com.burhannexus.dukaandost.data.local.dao.ProductDao
 import com.burhannexus.dukaandost.data.local.dao.PurchaseDao
 import com.burhannexus.dukaandost.data.local.dao.PurchaseReturnDao
@@ -56,4 +58,10 @@ object DatabaseModule {
 
     @Provides
     fun providePurchaseReturnDao(db: AppDatabase): PurchaseReturnDao = db.purchaseReturnDao()
+
+    @Provides
+    fun provideCustomerPaymentDao(db: AppDatabase): CustomerPaymentDao = db.customerPaymentDao()
+
+    @Provides
+    fun provideSupplierPaymentDao(db: AppDatabase): SupplierPaymentDao = db.supplierPaymentDao()
 }

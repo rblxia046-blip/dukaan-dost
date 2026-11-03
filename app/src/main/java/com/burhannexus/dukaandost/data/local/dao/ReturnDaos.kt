@@ -22,6 +22,17 @@ interface SaleReturnDao {
     @Query("SELECT COALESCE(MAX(number), 0) FROM sale_returns")
     suspend fun maxNumber(): Long
 
+    @Query("SELECT r.* FROM sale_returns r JOIN sales s ON s.id = r.saleId WHERE s.customerId = :customerId ORDER BY r.createdAt, r.id")
+    fun observeForCustomer(customerId: Long): Flow<List<SaleReturnEntity>>
+
+    @Query(
+        """SELECT r.id AS id, r.number AS number, r.createdAt AS createdAt, r.valueMinor AS valueMinor,
+           r.refundMinor AS refundMinor, r.saleId AS invoiceId, s.number AS invoiceNumber, c.name AS partyName
+           FROM sale_returns r JOIN sales s ON s.id = r.saleId LEFT JOIN customers c ON c.id = s.customerId
+           ORDER BY r.createdAt DESC, r.id DESC LIMIT :limit"""
+    )
+    fun observeAll(limit: Int): Flow<List<com.burhannexus.dukaandost.data.local.ReturnListRow>>
+
     @Query("SELECT * FROM sale_returns WHERE saleId = :saleId ORDER BY createdAt DESC, id DESC")
     fun observeForSale(saleId: Long): Flow<List<SaleReturnEntity>>
 
@@ -70,6 +81,17 @@ interface PurchaseReturnDao {
 
     @Query("SELECT COALESCE(MAX(number), 0) FROM purchase_returns")
     suspend fun maxNumber(): Long
+
+    @Query("SELECT r.* FROM purchase_returns r JOIN purchases s ON s.id = r.purchaseId WHERE s.supplierId = :supplierId ORDER BY r.createdAt, r.id")
+    fun observeForSupplier(supplierId: Long): Flow<List<PurchaseReturnEntity>>
+
+    @Query(
+        """SELECT r.id AS id, r.number AS number, r.createdAt AS createdAt, r.valueMinor AS valueMinor,
+           r.refundMinor AS refundMinor, r.purchaseId AS invoiceId, s.number AS invoiceNumber, c.name AS partyName
+           FROM purchase_returns r JOIN purchases s ON s.id = r.purchaseId LEFT JOIN suppliers c ON c.id = s.supplierId
+           ORDER BY r.createdAt DESC, r.id DESC LIMIT :limit"""
+    )
+    fun observeAll(limit: Int): Flow<List<com.burhannexus.dukaandost.data.local.ReturnListRow>>
 
     @Query("SELECT * FROM purchase_returns WHERE purchaseId = :purchaseId ORDER BY createdAt DESC, id DESC")
     fun observeForPurchase(purchaseId: Long): Flow<List<PurchaseReturnEntity>>
