@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Menu -->
+    <string name="nav_returns">Return items</string>
+    <string name="nav_ledger">Ledger</string>
+
+    <!-- Customers / suppliers -->
+    <string name="customer_add">Add customer</string>
+    <string name="customer_edit">Edit customer</string>
+    <string name="supplier_add">Add supplier</string>
+    <string name="supplier_edit">Edit supplier</string>
+    <string name="party_address">Address (optional)</string>
+    <string name="party_search_hint">Search name or phone</string>
+    <string name="party_opening_customer">Opening balance (what they already owe you)</string>
+    <string name="party_opening_supplier">Opening balance (what you already owe them)</string>
+    <string name="party_not_found">This record no longer exists.</string>
+    <string name="party_opening_locked">The opening balance cannot be changed after transactions exist.</string>
+    <string name="customers_empty">No customers yet. Tap + to add one.</string>
+    <string name="suppliers_empty">No suppliers yet. Tap + to add one.</string>
+    <string name="total_to_receive">Total to receive</string>
+    <string name="total_to_pay">Total to pay</string>
+    <string name="balance_settled">Settled</string>
+    <string name="balance_to_receive">To receive %1$s</string>
+    <string name="balance_to_pay">To pay %1$s</string>
+    <string name="balance_advance_customer">Advance from customer %1$s</string>
+    <string name="balance_advance_supplier">Advance paid to supplier %1$s</string>
+
+    <!-- Ledger -->
+    <string name="ledger_title">Ledger</string>
+    <string name="ledger_hint">Choose a customer or supplier to see every bill, return and payment.</string>
+    <string name="ledger_entries">Account history</string>
+    <string name="ledger_empty">No transactions yet.</string>
+    <string name="ledger_opening">Opening balance</string>
+    <string name="ledger_sale">Sale %1$s</string>
+    <string name="ledger_purchase">Purchase %1$s</string>
+    <string name="ledger_paid_with">Paid with %1$s</string>
+    <string name="ledger_return">Return %1$s</string>
+    <string name="ledger_refund">Cash refund %1$s</string>
+    <string name="ledger_payment_received">Payment received %1$s</string>
+    <string name="ledger_payment_made">Payment made %1$s</string>
+    <string name="ledger_balance_after">Balance %1$s</string>
+    <string name="payment_receive">Receive payment</string>
+    <string name="payment_make">Make payment</string>
+    <string name="payment_amount">Amount</string>
+    <string name="payment_note">Note (optional)</string>
+
+    <!-- Statement PDF -->
+    <string name="statement_title">Account statement</string>
+    <string name="statement_date">Date</string>
+    <string name="statement_description">Details</string>
+    <string name="statement_bills">Bills</string>
+    <string name="statement_credits">Paid / returned</string>
+    <string name="statement_balance">Balance</string>
+    <string name="statement_share">Statement PDF</string>
+
+    <!-- Returns menu -->
+    <string name="returns_title">Return items</string>
+    <string name="returns_sales">Sales returns</string>
+    <string name="returns_purchases">Purchase returns</string>
+    <string name="returns_new_sale">New sales return</string>
+    <string name="returns_new_purchase">New purchase return</string>
+    <string name="returns_empty">No returns yet.</string>
+    <string name="returns_from_invoice">From %1$s</string>
+    <string name="returns_pick_title">Choose invoice</string>
+    <string name="returns_pick_hint">Search invoice number or name</string>
+    <string name="returns_pick_none">No invoices found.</string>
+</resources>
