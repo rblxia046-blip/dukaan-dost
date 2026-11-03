@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.4.0 - Phase 4: Customers, Suppliers, Ledger
+- New menu entries: Return items, Customers, Suppliers, Ledger
+- Return items menu: all sales and purchase returns in one list, start a new return against any invoice
+- Customers and Suppliers: list with balances, search, add, edit (name, phone, address, opening balance)
+- Ledger: every bill, payment-with-bill, return, refund and payment on account with a running balance
+- Receive payment from a customer / make payment to a supplier on account
+- Statement PDF (logo, shop details) with share and print
+- Opening balance is locked once the party has transactions (history is never rewritten silently)
+- Database v4 with migration 3 -> 4 (customer_payments, supplier_payments)
+- Dashboard receivables, payables and cash balance include opening balances and payments on account
+
 ## 0.3.2 - Shop profile and PDF receipts
 - First run asks for shop name, mobile number, address, owner, receipt message and logo (DataStore + private logo file)
 - Shop details editable later in Settings

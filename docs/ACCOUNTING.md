@@ -28,5 +28,14 @@ Zero or negative existing stock counts as no value.
   The product's average cost is left unchanged.
 - Dashboard: sales and profit are net of returns; receivable = sum(total - paid) - returns + refunds; same for payables.
 
+## Customers, suppliers and ledger (Phase 4)
+- Balance (customer) = opening + sum(sale total - paid at sale) - sum(return value - cash refund) - payments received.
+  Supplier balance is the same with purchases and payments made. Positive = we receive / we pay; negative = advance.
+- Ledger lines: BILL raises the balance, PAID WITH BILL lowers it, RETURN lowers it, REFUND (cash given back) raises it,
+  PAYMENT lowers it. The running balance is computed in order of time.
+- Payments on account are not tied to one invoice; invoice screens keep showing the remaining of that invoice only.
+- Dashboard: receivables/payables include opening balances and are reduced by payments on account;
+  cash balance also adds payments received and subtracts payments made.
+
 ## Not yet included
-Customer/supplier payments after the invoice (Phase 4), expenses, opening balances in the dashboard.
+Expenses, opening cash balance, payment allocation to individual invoices.

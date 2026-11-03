@@ -1,4 +1,4 @@
-# Database (Room / SQLite) - schema version 3
+# Database (Room / SQLite) - schema version 4
 
 File: `dukaan_dost.db`, local to each installation. Foreign keys are enforced.
 
@@ -30,3 +30,6 @@ Invoices and items are never deleted (foreign keys use RESTRICT).
 sale_returns / sale_return_items and purchase_returns / purchase_return_items.
 A return stores its value, the cash refund and (sales) the cost of the returned goods.
 Migration 2 -> 3 only creates tables.
+
+## Version 4 tables (payments on account)
+customer_payments and supplier_payments (number unique, amount, method, note). Migration 3 -> 4 only creates tables.
